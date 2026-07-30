@@ -10,10 +10,11 @@ The API then answers on http://localhost:5000.
 from datetime import datetime
 from pathlib import Path
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-from models import AgentLog, Arrival, Booking, Platform, Station, db
+from agents.scheduler_agent import add_minutes
+from models import AgentLog, Arrival, Booking, Platform, Station, Train, db
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -82,6 +83,90 @@ def register_routes(app):
         """The full audit trail, newest first — read by the Advisor Agent."""
         logs = AgentLog.query.order_by(AgentLog.id.desc()).all()
         return jsonify({"logs": [log.to_dict() for log in logs]})
+
+    @app.get("/api/trains")
+    def trains():
+        """Trains a delay can be reported against — those someone has booked."""
+        bookings = Booking.query.all()
+        return jsonify(
+            {
+                "trains": [
+                    {
+                        "trainNo": b.train.number,
+                        "name": b.train.name,
+                        "destination": b.train.destination,
+                        "status": b.status,
+                        "scheduledDeparture": b.scheduled_departure,
+                    }
+                    for b in bookings
+                ]
+            }
+        )
+
+    @app.post("/api/delays")
+    def report_delay():
+        """Report a train as running late, then let the agents respond.
+
+        This is the operator-facing entry point: a station master enters what
+        has happened, and the agents work out what to do about it.
+        """
+        payload = request.get_json(silent=True) or {}
+        train_no = str(payload.get("trainNo", "")).strip()
+        raw_minutes = payload.get("minutes")
+
+        if not train_no:
+            return jsonify({"error": "Pick a train first."}), 400
+
+        try:
+            minutes = int(raw_minutes)
+        except (TypeError, ValueError):
+            return jsonify({"error": "Delay must be a whole number of minutes."}), 400
+
+        if not 1 <= minutes <= 300:
+            return jsonify({"error": "Delay must be between 1 and 300 minutes."}), 400
+
+        booking = (
+            Booking.query.join(Train).filter(Train.number == train_no).first()
+        )
+        if booking is None:
+            return jsonify({"error": f"No booked journey on train {train_no}."}), 404
+
+        # Record the delay as freshly reported: nothing recovered yet, and the
+        # passenger has not been told, so the agents have work to do.
+        booking.status = "delayed"
+        booking.delay_minutes = minutes
+        booking.recovered_minutes = 0
+        booking.expected_departure = add_minutes(booking.scheduled_departure, minutes)
+        booking.notified_departure = None
+        booking.agent_note = None
+        db.session.commit()
+
+        # Read these before the agents run: afterwards expected_departure has
+        # already been pulled earlier by the Scheduler, and reporting that back
+        # as "the delay you entered" would not add up.
+        train_name = booking.train.name
+        departure_after_delay = booking.expected_departure
+
+        from agents import run_cycle
+
+        try:
+            results = run_cycle()
+        except FileNotFoundError as exc:
+            return jsonify({"error": str(exc)}), 503
+
+        return jsonify(
+            {
+                "reported": {
+                    "train": train_name,
+                    "minutes": minutes,
+                    "scheduledDeparture": booking.scheduled_departure,
+                    "departureAfterDelay": departure_after_delay,
+                },
+                "settledDeparture": booking.expected_departure,
+                "ranAt": datetime.now().strftime("%H:%M"),
+                "results": results,
+            }
+        )
 
     @app.post("/api/agents/run")
     def run_agents():

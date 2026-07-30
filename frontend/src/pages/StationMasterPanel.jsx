@@ -1,9 +1,10 @@
 import { useState } from 'react'
 
 import CapacityMeter, { crowdLevel } from '../components/CapacityMeter'
+import DelayForm from '../components/DelayForm'
 import StatusBadge from '../components/StatusBadge'
 import { ErrorMessage, Loading } from '../components/Feedback'
-import { fetchStation, runAgentCycle } from '../api/client'
+import { fetchStation, reportDelay, runAgentCycle } from '../api/client'
 import { useApi } from '../api/useApi'
 import './Dashboard.css'
 
@@ -57,11 +58,12 @@ function StationMasterPanel() {
   const [running, setRunning] = useState(false)
   const [cycleError, setCycleError] = useState(null)
 
-  async function handleRunAgents() {
+  /** Shared by both entry points: run something, then refresh this page. */
+  async function runAndRefresh(action) {
     setRunning(true)
     setCycleError(null)
     try {
-      const outcome = await runAgentCycle()
+      const outcome = await action()
       setCycle(outcome)
       // The agents have just changed the data this page is showing.
       await reload()
@@ -71,6 +73,9 @@ function StationMasterPanel() {
       setRunning(false)
     }
   }
+
+  const handleRunAgents = () => runAndRefresh(runAgentCycle)
+  const handleReportDelay = (input) => runAndRefresh(() => reportDelay(input))
 
   if (loading) {
     return (
@@ -139,6 +144,14 @@ function StationMasterPanel() {
         </button>
       </div>
 
+      <section className="panel report-panel">
+        <h2 className="panel-title">Report a Delay</h2>
+        <p className="form-hint">
+          Enter what has happened. The agents decide what to do about it.
+        </p>
+        <DelayForm onSubmit={handleReportDelay} busy={running} />
+      </section>
+
       {cycleError && <ErrorMessage message={cycleError} />}
 
       {cycle && (
@@ -146,6 +159,23 @@ function StationMasterPanel() {
           <h2 className="cycle-title">
             Observe → Reason → Act cycle at {cycle.ranAt}
           </h2>
+
+          {cycle.reported && (
+            <p className="cycle-input">
+              <span className="cycle-input-label">Reported</span>
+              {cycle.reported.train} running {cycle.reported.minutes} minutes late
+              {' — '}
+              {cycle.reported.scheduledDeparture} becomes{' '}
+              {cycle.reported.departureAfterDelay}
+              {cycle.settledDeparture !== cycle.reported.departureAfterDelay && (
+                <>
+                  , settled at <strong>{cycle.settledDeparture}</strong> after
+                  recovery
+                </>
+              )}
+            </p>
+          )}
+
           <ol className="cycle-steps">
             {cycle.results.map((result) => (
               <li key={result.agent}>

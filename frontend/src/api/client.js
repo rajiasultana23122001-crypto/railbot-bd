@@ -22,7 +22,15 @@ async function request(path, options) {
   }
 
   if (!response.ok) {
-    throw new Error(`API responded with ${response.status} for ${path}`)
+    // The API explains refusals in an "error" field. Surface that rather than
+    // a bare status code, so the person using the form knows what to change.
+    const detail = await response
+      .clone()
+      .json()
+      .then((body) => body.error)
+      .catch(() => null)
+
+    throw new Error(detail ?? `API responded with ${response.status} for ${path}`)
   }
 
   return response.json()
@@ -36,10 +44,26 @@ export function fetchStation(code) {
   return request(`/api/station/${code}`)
 }
 
+export function fetchTrains() {
+  return request('/api/trains')
+}
+
 /**
  * Ask the backend to run one Observe - Reason - Act cycle across all five
  * agents. Resolves with a summary of what each agent did.
  */
 export function runAgentCycle() {
   return request('/api/agents/run', { method: 'POST' })
+}
+
+/**
+ * Report a train as running late. The backend applies the delay and then runs
+ * a full agent cycle, so the response describes everything that followed.
+ */
+export function reportDelay({ trainNo, minutes }) {
+  return request('/api/delays', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ trainNo, minutes }),
+  })
 }
