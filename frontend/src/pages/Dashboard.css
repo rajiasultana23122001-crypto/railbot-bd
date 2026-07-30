@@ -1,0 +1,186 @@
+/* ==========================================================================
+   Dashboard building blocks: stat tiles, journey cards, status badges.
+   Shared by the Passenger and Station Master views.
+   ========================================================================== */
+
+/* ---------- Summary tiles ---------- */
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.stat-tile {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+}
+
+.stat-value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-value.stat-late {
+  color: var(--late);
+}
+
+.stat-value.stat-warn {
+  color: var(--warn);
+}
+
+.stat-label {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Journey cards ---------- */
+
+.journey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.journey-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+}
+
+.journey-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.journey-train {
+  font-size: 17.5px;
+  font-weight: 700;
+  color: var(--navy);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.journey-no {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.journey-route {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Fact grid ---------- */
+
+.journey-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px 20px;
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.journey-facts div {
+  min-width: 0;
+}
+
+.journey-facts dt {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.journey-facts dd {
+  margin: 3px 0 0;
+  font-size: 14.5px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.time-old {
+  color: var(--ink-faint);
+}
+
+.time-new {
+  color: var(--late);
+}
+
+/* ---------- Delay line and agent note ---------- */
+
+.journey-delay {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--late);
+}
+
+.agent-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--page);
+  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.agent-note-label {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: 1px;
+}
+
+/* ---------- Status badges ---------- */
+
+.badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-on-time {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.badge-at-risk {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.badge-delayed {
+  background: var(--late-soft);
+  color: var(--late);
+}

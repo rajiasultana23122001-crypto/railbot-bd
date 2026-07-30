@@ -1,9 +1,24 @@
+import JourneyCard from '../components/JourneyCard'
+import { journeys, alertsReceived } from '../data/mockJourneys'
+import './Dashboard.css'
+
 /**
  * Passenger Dashboard — what a traveller sees.
  *
- * Journey cards with live delay status arrive in the next step.
+ * The summary figures are derived from the journey list rather than hard-coded,
+ * so they stay correct once real data arrives from the backend.
  */
 function PassengerDashboard() {
+  const delayedCount = journeys.filter((j) => j.status === 'delayed').length
+  const atRiskCount = journeys.filter((j) => j.status === 'at-risk').length
+
+  const stats = [
+    { label: 'Upcoming journeys', value: journeys.length },
+    { label: 'Currently delayed', value: delayedCount, tone: 'late' },
+    { label: 'Flagged at risk', value: atRiskCount, tone: 'warn' },
+    { label: 'Alerts received', value: alertsReceived },
+  ]
+
   return (
     <>
       <div className="page-header">
@@ -15,7 +30,22 @@ function PassengerDashboard() {
         </p>
       </div>
 
-      <div className="placeholder">Journey cards are coming in the next step.</div>
+      <section className="stat-row" aria-label="Journey summary">
+        {stats.map((stat) => (
+          <div className="stat-tile" key={stat.label}>
+            <p className={`stat-value ${stat.tone ? `stat-${stat.tone}` : ''}`}>
+              {stat.value}
+            </p>
+            <p className="stat-label">{stat.label}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="journey-list">
+        {journeys.map((journey) => (
+          <JourneyCard journey={journey} key={journey.id} />
+        ))}
+      </section>
     </>
   )
 }

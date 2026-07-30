@@ -17,8 +17,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 0 clamp(16px, 4vw, 40px);
-  height: 62px;
+  padding: 10px clamp(16px, 4vw, 40px);
+  /* min-height, not height: on narrow screens the links wrap onto a second
+     row and a fixed height would clip them. */
+  min-height: 62px;
   flex-wrap: wrap;
 }
 
