@@ -185,6 +185,33 @@
   color: var(--late);
 }
 
+/* ---------- Loading and error states ---------- */
+
+.feedback {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 14.5px;
+}
+
+.feedback-error {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-color: var(--late);
+  background: var(--late-soft);
+  color: var(--late);
+  text-align: left;
+}
+
+.feedback-error span {
+  color: var(--ink-soft);
+  font-size: 13.5px;
+}
+
 /* ==========================================================================
    Station Master Panel
    ========================================================================== */

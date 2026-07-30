@@ -1,14 +1,48 @@
 import JourneyCard from '../components/JourneyCard'
-import { journeys, alertsReceived } from '../data/mockJourneys'
+import { ErrorMessage, Loading } from '../components/Feedback'
+import { fetchJourneys } from '../api/client'
+import { useApi } from '../api/useApi'
 import './Dashboard.css'
 
 /**
  * Passenger Dashboard — what a traveller sees.
  *
- * The summary figures are derived from the journey list rather than hard-coded,
- * so they stay correct once real data arrives from the backend.
+ * Journeys come from the Flask API. The summary figures are derived from that
+ * response rather than stored separately, so they cannot drift out of step.
  */
 function PassengerDashboard() {
+  const { data, loading, error } = useApi(fetchJourneys)
+
+  const header = (
+    <div className="page-header">
+      <p className="page-eyebrow">Passenger View</p>
+      <h1 className="page-title">Your Journeys</h1>
+      <p className="page-subtitle">
+        Track your booked trains and see delay updates the moment RailBot's
+        agents detect them.
+      </p>
+    </div>
+  )
+
+  if (loading) {
+    return (
+      <>
+        {header}
+        <Loading what="your journeys" />
+      </>
+    )
+  }
+
+  if (error) {
+    return (
+      <>
+        {header}
+        <ErrorMessage message={error} />
+      </>
+    )
+  }
+
+  const journeys = data.journeys
   const delayedCount = journeys.filter((j) => j.status === 'delayed').length
   const atRiskCount = journeys.filter((j) => j.status === 'at-risk').length
 
@@ -16,19 +50,12 @@ function PassengerDashboard() {
     { label: 'Upcoming journeys', value: journeys.length },
     { label: 'Currently delayed', value: delayedCount, tone: 'late' },
     { label: 'Flagged at risk', value: atRiskCount, tone: 'warn' },
-    { label: 'Alerts received', value: alertsReceived },
+    { label: 'Alerts received', value: data.alertsReceived },
   ]
 
   return (
     <>
-      <div className="page-header">
-        <p className="page-eyebrow">Passenger View</p>
-        <h1 className="page-title">Your Journeys</h1>
-        <p className="page-subtitle">
-          Track your booked trains and see delay updates the moment RailBot's
-          agents detect them.
-        </p>
-      </div>
+      {header}
 
       <section className="stat-row" aria-label="Journey summary">
         {stats.map((stat) => (

@@ -1,7 +1,12 @@
 import CapacityMeter, { crowdLevel } from '../components/CapacityMeter'
 import StatusBadge from '../components/StatusBadge'
-import { station, platforms, arrivals, agentAlerts } from '../data/mockStation'
+import { ErrorMessage, Loading } from '../components/Feedback'
+import { fetchStation } from '../api/client'
+import { useApi } from '../api/useApi'
 import './Dashboard.css'
+
+/** The station this panel monitors. Later this becomes a picker. */
+const STATION_CODE = 'DHKA'
 
 /**
  * Station Master Control Panel — what station staff see.
@@ -10,6 +15,34 @@ import './Dashboard.css'
  * filling up, and what the agents have already decided.
  */
 function StationMasterPanel() {
+  const { data, loading, error } = useApi(() => fetchStation(STATION_CODE))
+
+  if (loading) {
+    return (
+      <>
+        <div className="page-header">
+          <p className="page-eyebrow">Station Control</p>
+          <h1 className="page-title">Station Master Panel</h1>
+        </div>
+        <Loading what="station data" />
+      </>
+    )
+  }
+
+  if (error) {
+    return (
+      <>
+        <div className="page-header">
+          <p className="page-eyebrow">Station Control</p>
+          <h1 className="page-title">Station Master Panel</h1>
+        </div>
+        <ErrorMessage message={error} />
+      </>
+    )
+  }
+
+  const { station, platforms, arrivals, agentAlerts } = data
+
   const occupancyPercent = Math.round(
     (station.passengersOnSite / station.capacity) * 100,
   )
@@ -36,7 +69,7 @@ function StationMasterPanel() {
         <h1 className="page-title">{station.name}</h1>
         <p className="page-subtitle">
           Live platform crowding, inbound trains and the actions RailBot's agents
-          have already taken. Updated at {station.updatedAt}.
+          have already taken.
         </p>
       </div>
 
