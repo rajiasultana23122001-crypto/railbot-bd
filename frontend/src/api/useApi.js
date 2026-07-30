@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 /**
- * Runs an API call once when the component mounts and reports its progress.
+ * Runs an API call when the component mounts and reports its progress.
  *
- * Returns { data, loading, error } — the three states every screen that loads
- * from a server has to handle.
+ * Returns { data, loading, error, reload } — the three states every
+ * server-backed screen has to handle, plus a way to fetch again after
+ * something has changed on the server.
  *
  * @param {() => Promise<any>} loader function that performs the request
  */
@@ -13,30 +14,40 @@ export function useApi(loader) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    // If the component unmounts mid-request, skip the state update so React
-    // is not asked to update a screen that is no longer on the page.
-    let active = true
+  // Held in a ref so callers can pass an inline arrow function without it
+  // re-triggering the request on every render.
+  const loaderRef = useRef(loader)
+  loaderRef.current = loader
 
+  // Tracks whether the component is still on screen, so a request that
+  // finishes after it unmounts does not try to update it.
+  const activeRef = useRef(true)
+
+  const load = useCallback(() => {
     setLoading(true)
     setError(null)
 
-    loader()
+    return loaderRef
+      .current()
       .then((result) => {
-        if (active) setData(result)
+        if (activeRef.current) setData(result)
       })
       .catch((err) => {
-        if (active) setError(err.message)
+        if (activeRef.current) setError(err.message)
       })
       .finally(() => {
-        if (active) setLoading(false)
+        if (activeRef.current) setLoading(false)
       })
-
-    return () => {
-      active = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return { data, loading, error }
+  useEffect(() => {
+    activeRef.current = true
+    load()
+
+    return () => {
+      activeRef.current = false
+    }
+  }, [load])
+
+  return { data, loading, error, reload: load }
 }

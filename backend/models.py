@@ -22,6 +22,10 @@ class Train(db.Model):
     origin = db.Column(db.String(80), nullable=False)
     destination = db.Column(db.String(80), nullable=False)
 
+    # Route facts the Risk Agent's model uses as features.
+    distance_km = db.Column(db.Integer, nullable=False, default=200)
+    scheduled_halts = db.Column(db.Integer, nullable=False, default=8)
+
     bookings = db.relationship("Booking", back_populates="train")
 
 
@@ -57,11 +61,29 @@ class Booking(db.Model):
     coach = db.Column(db.String(30))
 
     status = db.Column(db.String(10), nullable=False, default="on-time")
+
+    # The delay as first reported. It stays put so the Scheduler Agent always
+    # sizes its recovery budget against the original slip rather than against
+    # a figure it has already improved.
     delay_minutes = db.Column(db.Integer, nullable=False, default=0)
+
+    # Minutes the Scheduler Agent has clawed back so far.
+    recovered_minutes = db.Column(db.Integer, nullable=False, default=0)
+
     agent_note = db.Column(db.Text)
+
+    # The departure time the Manager Agent last read out to this passenger.
+    # When it stops matching expected_departure, the passenger is holding an
+    # out-of-date time and has to be called again.
+    notified_departure = db.Column(db.String(5))
 
     train = db.relationship("Train", back_populates="bookings")
     passenger = db.relationship("Passenger", back_populates="bookings")
+
+    @property
+    def current_delay(self):
+        """How late the train still is, after any recovery."""
+        return max(self.delay_minutes - self.recovered_minutes, 0)
 
     def to_dict(self):
         """Serialise into the shape the Passenger Dashboard expects."""
@@ -77,7 +99,7 @@ class Booking(db.Model):
             "platform": self.platform,
             "coach": self.coach,
             "status": self.status,
-            "delayMinutes": self.delay_minutes,
+            "delayMinutes": self.current_delay,
             "agentNote": self.agent_note,
         }
 
@@ -115,6 +137,10 @@ class Platform(db.Model):
     occupancy = db.Column(db.Integer, nullable=False, default=0)
     capacity = db.Column(db.Integer, nullable=False)
     waiting_for = db.Column(db.String(80))
+
+    # Crowding level the Resource Agent last raised for this platform, so a
+    # standing condition is reported once rather than on every cycle.
+    last_alert_level = db.Column(db.String(10))
 
     station = db.relationship("Station", back_populates="platforms")
 

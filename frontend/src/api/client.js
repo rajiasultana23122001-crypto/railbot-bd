@@ -10,10 +10,10 @@ const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
  * Fetch a path from the API and return the parsed JSON.
  * Throws with a readable message so the dashboards can show what went wrong.
  */
-async function request(path) {
+async function request(path, options) {
   let response
   try {
-    response = await fetch(`${API_BASE}${path}`)
+    response = await fetch(`${API_BASE}${path}`, options)
   } catch {
     // fetch only rejects when the server could not be reached at all.
     throw new Error(
@@ -34,4 +34,12 @@ export function fetchJourneys() {
 
 export function fetchStation(code) {
   return request(`/api/station/${code}`)
+}
+
+/**
+ * Ask the backend to run one Observe - Reason - Act cycle across all five
+ * agents. Resolves with a summary of what each agent did.
+ */
+export function runAgentCycle() {
+  return request('/api/agents/run', { method: 'POST' })
 }

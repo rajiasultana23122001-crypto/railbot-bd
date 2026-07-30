@@ -7,6 +7,7 @@ Serves the data behind both dashboards. Run it with:
 The API then answers on http://localhost:5000.
 """
 
+from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, jsonify
@@ -81,6 +82,23 @@ def register_routes(app):
         """The full audit trail, newest first — read by the Advisor Agent."""
         logs = AgentLog.query.order_by(AgentLog.id.desc()).all()
         return jsonify({"logs": [log.to_dict() for log in logs]})
+
+    @app.post("/api/agents/run")
+    def run_agents():
+        """Run one Observe - Reason - Act cycle across all five agents.
+
+        Returns what each agent did, so the dashboard can show the cycle
+        happening rather than only its after-effects.
+        """
+        from agents import run_cycle
+
+        try:
+            results = run_cycle()
+        except FileNotFoundError as exc:
+            # The Risk Agent's model has not been trained yet.
+            return jsonify({"error": str(exc)}), 503
+
+        return jsonify({"ranAt": datetime.now().strftime("%H:%M"), "results": results})
 
 
 app = create_app()

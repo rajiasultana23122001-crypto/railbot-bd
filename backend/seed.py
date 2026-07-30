@@ -13,16 +13,16 @@ from app import app
 from models import AgentLog, Arrival, Booking, Passenger, Platform, Station, Train, db
 
 TRAINS = [
-    # name, number, origin, destination
-    ("Subarna Express", "702", "Dhaka (Kamalapur)", "Chattogram"),
-    ("Parabat Express", "709", "Dhaka (Kamalapur)", "Sylhet"),
-    ("Padma Express", "759", "Dhaka (Kamalapur)", "Rajshahi"),
-    ("Ekota Express", "765", "Dhaka (Kamalapur)", "Dinajpur"),
-    ("Mohanagar Provati", "704", "Chattogram", "Dhaka (Kamalapur)"),
-    ("Parabat Express (up)", "710", "Sylhet", "Dhaka (Kamalapur)"),
-    ("Ekota Express (up)", "766", "Dinajpur", "Dhaka (Kamalapur)"),
-    ("Padma Express (up)", "760", "Rajshahi", "Dhaka (Kamalapur)"),
-    ("Chitra Express", "764", "Khulna", "Dhaka (Kamalapur)"),
+    # name, number, origin, destination, distance km, scheduled halts
+    ("Subarna Express", "702", "Dhaka (Kamalapur)", "Chattogram", 320, 4),
+    ("Parabat Express", "709", "Dhaka (Kamalapur)", "Sylhet", 319, 11),
+    ("Padma Express", "759", "Dhaka (Kamalapur)", "Rajshahi", 343, 9),
+    ("Ekota Express", "765", "Dhaka (Kamalapur)", "Dinajpur", 400, 14),
+    ("Mohanagar Provati", "704", "Chattogram", "Dhaka (Kamalapur)", 320, 9),
+    ("Parabat Express (up)", "710", "Sylhet", "Dhaka (Kamalapur)", 319, 11),
+    ("Ekota Express (up)", "766", "Dinajpur", "Dhaka (Kamalapur)", 400, 14),
+    ("Padma Express (up)", "760", "Rajshahi", "Dhaka (Kamalapur)", 343, 9),
+    ("Chitra Express", "764", "Khulna", "Dhaka (Kamalapur)", 405, 13),
 ]
 
 BOOKINGS = [
@@ -112,9 +112,14 @@ def seed():
         db.create_all()
 
         trains = {}
-        for name, number, origin, destination in TRAINS:
+        for name, number, origin, destination, distance, halts in TRAINS:
             train = Train(
-                name=name, number=number, origin=origin, destination=destination
+                name=name,
+                number=number,
+                origin=origin,
+                destination=destination,
+                distance_km=distance,
+                scheduled_halts=halts,
             )
             db.session.add(train)
             trains[number] = train
@@ -137,6 +142,9 @@ def seed():
                     status=status,
                     delay_minutes=delay,
                     agent_note=note,
+                    # The passenger was told the delayed time; the Scheduler
+                    # Agent has not yet had a chance to improve on it.
+                    notified_departure=exp if status == "delayed" else None,
                 )
             )
 
