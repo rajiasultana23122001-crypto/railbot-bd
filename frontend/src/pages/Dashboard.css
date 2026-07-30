@@ -184,3 +184,223 @@
   background: var(--late-soft);
   color: var(--late);
 }
+
+/* ==========================================================================
+   Station Master Panel
+   ========================================================================== */
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+
+/* Panels inside the grid are spaced by the grid gap, not their own margin. */
+.panel-grid .panel {
+  margin-bottom: 0;
+}
+
+.panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ---------- Platform crowding ---------- */
+
+.platform-list,
+.alert-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.platform-list {
+  gap: 18px;
+}
+
+.platform-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.platform-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.platform-count {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.platform-waiting {
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Capacity meter ---------- */
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 7px;
+}
+
+.meter-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--page);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.meter-clear {
+  background: var(--ok);
+}
+.meter-busy {
+  background: var(--warn);
+}
+.meter-critical {
+  background: var(--late);
+}
+
+.meter-value {
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 38px;
+  text-align: right;
+}
+
+.meter-text-clear {
+  color: var(--ok);
+}
+.meter-text-busy {
+  color: var(--warn);
+}
+.meter-text-critical {
+  color: var(--late);
+}
+
+/* ---------- Agent activity feed ---------- */
+
+.alert-list {
+  gap: 14px;
+}
+
+.alert-row {
+  padding-left: 14px;
+  border-left: 3px solid var(--border);
+}
+
+.alert-high {
+  border-left-color: var(--late);
+}
+.alert-medium {
+  border-left-color: var(--warn);
+}
+.alert-info {
+  border-left-color: var(--steel);
+}
+
+.alert-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.alert-agent {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.alert-time {
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.alert-message {
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* ---------- Arrivals table ---------- */
+
+/* The table must scroll inside its own box so the page never moves sideways. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.arrivals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 620px;
+}
+
+.arrivals-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 14px 10px 0;
+  white-space: nowrap;
+}
+
+.arrivals-table td {
+  padding: 12px 14px 12px 0;
+  border-top: 1px solid var(--border);
+  color: var(--ink);
+  vertical-align: middle;
+}
+
+.arrivals-table .num {
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-train {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.cell-no {
+  margin-left: 7px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
