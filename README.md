@@ -43,12 +43,21 @@ railbot-bd/
 
 ## Getting Started
 
-Not yet runnable — see Status below.
+Requires Node.js 20 or newer.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The dashboards are then served at `http://localhost:5173`.
 
 ## Status
 
-Early development. Currently scaffolding the project and building the frontend
-prototype with mock data; backend and agent logic follow in the next phase.
+Frontend prototype. Both dashboards are built and navigable, running on sample
+data from `frontend/src/data/` that matches the shape the API will return. The
+Flask backend, the database and the five agents follow in the next phase.
 
 ## Team
 
