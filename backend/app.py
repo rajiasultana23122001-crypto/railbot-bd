@@ -29,8 +29,10 @@ def create_app():
     db.init_app(app)
 
     # The React dev server runs on a different port, so the browser needs
-    # permission to call this API from there.
-    CORS(app, origins=["http://localhost:5173"])
+    # permission to call this API from there. Vite moves to 5174, 5175 and so
+    # on when its usual port is busy, so accept any localhost port rather than
+    # breaking the moment that happens.
+    CORS(app, origins=[r"http://localhost:\d+", r"http://127\.0\.0\.1:\d+"])
 
     register_routes(app)
     return app
