@@ -1,4 +1,4 @@
-﻿"""Manager Agent - tells passengers about delays without being asked.
+"""Manager Agent - tells passengers about delays without being asked.
 
 Observes journeys that have slipped, reasons about what each passenger needs to
 hear, and places the call.
@@ -10,7 +10,7 @@ that decides who to call and what to say stays exactly as it is.
 
 import os
 
-from models import Booking, db
+from core.models import Booking
 
 from .base import BaseAgent
 
@@ -40,7 +40,9 @@ class ManagerAgent(BaseAgent):
         """
         return [
             booking
-            for booking in Booking.query.filter_by(status="delayed").all()
+            for booking in Booking.objects.filter(status="delayed").select_related(
+                "train", "passenger"
+            )
             if booking.notified_departure != booking.expected_departure
         ]
 
@@ -82,7 +84,7 @@ class ManagerAgent(BaseAgent):
             booking.notified_departure = booking.expected_departure
 
             booking.agent_note = (
-                f"Manager Agent called you with the updated departure time. "
+                "Manager Agent called you with the updated departure time. "
                 if item["isUpdate"]
                 else f"Manager Agent called you about the "
                 f"{booking.current_delay} minute delay. "
@@ -90,6 +92,7 @@ class ManagerAgent(BaseAgent):
                 f"Your train now departs at {booking.expected_departure} "
                 f"from platform {booking.platform}."
             )
+            booking.save()
 
             kind = "Updated time" if item["isUpdate"] else "Delay call"
             self.log(
@@ -105,5 +108,4 @@ class ManagerAgent(BaseAgent):
                 }
             )
 
-        db.session.commit()
         return {"examined": len(decision), "called": called}

@@ -1,10 +1,10 @@
-"""Resource Agent — keeps platforms from overfilling.
+"""Resource Agent - keeps platforms from overfilling.
 
 Observes crowding, reasons against the same thresholds the dashboard meters
 use, and tells the station master to open extra space before it is too late.
 """
 
-from models import Platform, db
+from core.models import Platform
 
 from .base import BaseAgent
 
@@ -20,7 +20,7 @@ class ResourceAgent(BaseAgent):
     def observe(self):
         """Occupancy on every platform."""
         readings = []
-        for platform in Platform.query.all():
+        for platform in Platform.objects.all():
             percent = round((platform.occupancy / platform.capacity) * 100)
             readings.append({"platform": platform, "percent": percent})
         return readings
@@ -82,6 +82,8 @@ class ResourceAgent(BaseAgent):
 
             self.log(message, severity=severity)
             platform.last_alert_level = item["level"]
+            platform.save()
+
             alerts.append(
                 {
                     "platform": platform.number,
@@ -90,5 +92,4 @@ class ResourceAgent(BaseAgent):
                 }
             )
 
-        db.session.commit()
         return {"examined": len(decision), "alerts": alerts}

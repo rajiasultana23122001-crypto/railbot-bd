@@ -1,21 +1,21 @@
-"""Risk Agent — predicts which journeys are about to slip.
+"""Risk Agent - predicts which journeys are about to slip.
 
 Observes route conditions and weather, reasons with the trained model, and
 flags journeys whose predicted delay probability crosses the threshold.
 """
 
-from datetime import datetime
 from pathlib import Path
 
 import joblib
 import pandas as pd
 
-from models import Booking, db
+from core.models import Booking
 
 from .base import BaseAgent
 from .weather import current_weather
 
-MODEL_PATH = Path(__file__).resolve().parent.parent / "ml" / "risk_model.pkl"
+# backend/core/agents/risk_agent.py -> backend/ml/risk_model.pkl
+MODEL_PATH = Path(__file__).resolve().parent.parent.parent / "ml" / "risk_model.pkl"
 
 # Flag a journey once the model puts its delay probability at or above this.
 # Lower catches more real delays but cries wolf more often; 0.60 keeps the
@@ -45,7 +45,7 @@ class RiskAgent(BaseAgent):
     def observe(self):
         """Every journey not already known to be delayed, plus its conditions."""
         observations = []
-        for booking in Booking.query.filter(Booking.status != "delayed").all():
+        for booking in Booking.objects.exclude(status="delayed").select_related("train"):
             train = booking.train
             departure_hour = int(booking.scheduled_departure.split(":")[0])
             observations.append(
@@ -99,6 +99,7 @@ class RiskAgent(BaseAgent):
                     f"({item['weather'].replace('_', ' ')} forecast on this route). "
                     "You will be called if the delay is confirmed."
                 )
+                booking.save()
                 self.log(
                     f"{booking.train.name} flagged at {percent}% delay risk "
                     f"({item['weather'].replace('_', ' ')}).",
@@ -109,6 +110,7 @@ class RiskAgent(BaseAgent):
             elif not item["at_risk"] and booking.status == "at-risk":
                 booking.status = "on-time"
                 booking.agent_note = None
+                booking.save()
                 self.log(
                     f"{booking.train.name} no longer at risk "
                     f"(now {percent}%); warning withdrawn.",
@@ -116,7 +118,6 @@ class RiskAgent(BaseAgent):
                 )
                 cleared.append(booking.train.name)
 
-        db.session.commit()
         return {
             "examined": len(decision),
             "flagged": flagged,

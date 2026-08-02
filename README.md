@@ -28,7 +28,7 @@ Every agent follows the same **Observe → Reason → Act** cycle.
 ## Tech Stack
 
 - **Frontend:** React.js — Passenger Dashboard and Station Master Control Panel
-- **Backend:** Flask (Python REST API)
+- **Backend:** Django (Python REST API)
 - **Database:** SQLite (development) / PostgreSQL (production)
 - **Agents & AI:** Python decision-loop classes, scikit-learn, Google Gemini API
 - **External APIs:** Twilio (voice calls), OpenWeatherMap (weather data)
@@ -37,8 +37,15 @@ Every agent follows the same **Observe → Reason → Act** cycle.
 
 ```
 railbot-bd/
-├── frontend/     React app (Passenger + Station Master dashboards)
-└── backend/      Flask API and the five autonomous agents
+├── frontend/          React app (Passenger + Station Master dashboards)
+└── backend/
+    ├── railbot/       Django project — settings and root URLs
+    ├── core/          Django app — models, views, and the five agents
+    │   ├── models.py      7 tables, including the agent_logs audit trail
+    │   ├── views.py       the API endpoints
+    │   ├── agents/        BaseAgent plus the five agents
+    │   └── management/    seed and run_agents commands
+    └── ml/            dataset generator, trainer, and the saved model
 ```
 
 ## Getting Started
@@ -53,13 +60,18 @@ python -m venv venv
 venv\Scripts\pip install -r requirements.txt
 venv\Scripts\python ml\generate_dataset.py
 venv\Scripts\python ml\train_model.py
-venv\Scripts\python seed.py
-venv\Scripts\python app.py
+venv\Scripts\python manage.py migrate
+venv\Scripts\python manage.py seed
+venv\Scripts\python manage.py runserver
 ```
 
-The API then answers on `http://localhost:5000`. `seed.py` rebuilds the SQLite
-database from scratch, so it is safe to re-run at any time. The two `ml` scripts
-build the Risk Agent's model and only need running once.
+The API then answers on `http://localhost:8000`. `manage.py seed` clears and
+reloads the sample data, so it is safe to re-run at any time. The two `ml`
+scripts build the Risk Agent's model and only need running once.
+
+Django's admin is available at `http://localhost:8000/admin` once a superuser
+exists (`manage.py createsuperuser`) — useful for browsing the agent log during
+a demo.
 
 ### Frontend
 
@@ -78,7 +90,9 @@ The dashboards are then served at `http://localhost:5173`.
 | `GET /api/health` | Service check |
 | `GET /api/journeys` | Booked journeys for the Passenger Dashboard |
 | `GET /api/station/<code>` | Platforms, arrivals and agent alerts for one station |
+| `GET /api/trains` | Trains a delay can be reported against |
 | `GET /api/agent-logs` | The full audit trail, newest first |
+| `POST /api/delays` | Report a train as late, then run a cycle |
 | `POST /api/agents/run` | Runs one cycle across all five agents |
 
 ## How the agents work
@@ -99,6 +113,11 @@ They run in the order a delay actually propagates:
 Running Manager before Scheduler would call passengers with times about to
 change, so the sequence is part of the design.
 
+Agents never call each other. They communicate only through the database, so
+any one of them can be changed or removed without touching the rest.
+
+To run a cycle without the frontend: `venv\Scripts\python manage.py run_agents`
+
 Agents act on *change*: re-running a cycle when nothing has moved produces no
 new calls, no repeated alerts and no duplicate advice.
 
@@ -118,7 +137,7 @@ predicted delay probability reaches 0.60.
 
 ## Status
 
-Working end to end: both dashboards read live data from the Flask API, and all
+Working end to end: both dashboards read live data from the Django API, and all
 five agents run against the database with the Risk Agent driven by a trained
 model. Voice calls are simulated — `place_call()` in the Manager Agent is the
 single function Twilio slots into.

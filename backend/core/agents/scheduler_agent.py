@@ -1,10 +1,10 @@
-"""Scheduler Agent — claws back time on journeys that have already slipped.
+"""Scheduler Agent - claws back time on journeys that have already slipped.
 
 Observes delayed journeys, reasons about how much can be recovered by trimming
 halts at minor stations, and rewrites the expected departure accordingly.
 """
 
-from models import Booking, db
+from core.models import Booking
 
 from .base import BaseAgent
 
@@ -29,7 +29,7 @@ class SchedulerAgent(BaseAgent):
 
     def observe(self):
         """Journeys currently running late."""
-        return Booking.query.filter_by(status="delayed").all()
+        return list(Booking.objects.filter(status="delayed").select_related("train"))
 
     def reason(self, observation):
         """Work out how many minutes each journey can still recover.
@@ -63,6 +63,7 @@ class SchedulerAgent(BaseAgent):
                 booking.expected_departure, -recovered
             )
             booking.recovered_minutes += recovered
+            booking.save()
 
             self.log(
                 f"{booking.train.name} delayed. Halts trimmed at minor stations; "
@@ -78,5 +79,4 @@ class SchedulerAgent(BaseAgent):
                 }
             )
 
-        db.session.commit()
         return {"examined": len(decision), "adjusted": adjusted}

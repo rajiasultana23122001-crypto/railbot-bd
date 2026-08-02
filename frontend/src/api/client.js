@@ -1,10 +1,11 @@
 /**
- * Talks to the Flask API.
+ * Talks to the Django API.
  *
- * The base URL can be overridden with VITE_API_URL when the backend is not on
- * localhost — useful later for a deployed build.
+ * 8000 is Django's own default port. The base URL can be overridden with
+ * VITE_API_URL when the backend is not on localhost — useful later for a
+ * deployed build.
  */
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 /**
  * Fetch a path from the API and return the parsed JSON.
@@ -17,7 +18,7 @@ async function request(path, options) {
   } catch {
     // fetch only rejects when the server could not be reached at all.
     throw new Error(
-      `Cannot reach the API at ${API_BASE}. Is the Flask server running?`,
+      `Cannot reach the API at ${API_BASE}. Is the Django server running?`,
     )
   }
 

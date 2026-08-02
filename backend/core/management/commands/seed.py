@@ -1,16 +1,23 @@
-"""Create the database and fill it with sample data.
+"""Fill the database with sample data.
 
-Run this once before starting the API:
+    python manage.py seed
 
-    venv\\Scripts\\python seed.py
-
-It drops and rebuilds every table, so it is safe to re-run whenever the sample
-data changes. The figures match what the dashboards were showing from their
-local sample files.
+Clears every table first, so it is safe to re-run whenever the sample data
+changes or a demo needs a clean slate.
 """
 
-from app import app
-from models import AgentLog, Arrival, Booking, Passenger, Platform, Station, Train, db
+from django.core.management.base import BaseCommand
+from django.db import transaction
+
+from core.models import (
+    AgentLog,
+    Arrival,
+    Booking,
+    Passenger,
+    Platform,
+    Station,
+    Train,
+)
 
 TRAINS = [
     # name, number, origin, destination, distance km, scheduled halts
@@ -106,14 +113,17 @@ AGENT_LOGS = [
 ]
 
 
-def seed():
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
+class Command(BaseCommand):
+    help = "Clear the database and load the RailBot BD sample data."
+
+    @transaction.atomic
+    def handle(self, *args, **options):
+        for model in (AgentLog, Arrival, Platform, Booking, Station, Passenger, Train):
+            model.objects.all().delete()
 
         trains = {}
         for name, number, origin, destination, distance, halts in TRAINS:
-            train = Train(
+            trains[number] = Train.objects.create(
                 name=name,
                 number=number,
                 origin=origin,
@@ -121,84 +131,65 @@ def seed():
                 distance_km=distance,
                 scheduled_halts=halts,
             )
-            db.session.add(train)
-            trains[number] = train
-        db.session.flush()  # assigns ids without committing yet
 
-        passenger = Passenger(name="Istiak Ahammed Rumi", phone="+8801700000000")
-        db.session.add(passenger)
-        db.session.flush()
+        passenger = Passenger.objects.create(
+            name="Istiak Ahammed Rumi", phone="+8801700000000"
+        )
 
         for number, date, sched, exp, plat, coach, status, delay, note in BOOKINGS:
-            db.session.add(
-                Booking(
-                    train_id=trains[number].id,
-                    passenger_id=passenger.id,
-                    travel_date=date,
-                    scheduled_departure=sched,
-                    expected_departure=exp,
-                    platform=plat,
-                    coach=coach,
-                    status=status,
-                    delay_minutes=delay,
-                    agent_note=note,
-                    # The passenger was told the delayed time; the Scheduler
-                    # Agent has not yet had a chance to improve on it.
-                    notified_departure=exp if status == "delayed" else None,
-                )
+            Booking.objects.create(
+                train=trains[number],
+                passenger=passenger,
+                travel_date=date,
+                scheduled_departure=sched,
+                expected_departure=exp,
+                platform=plat,
+                coach=coach,
+                status=status,
+                delay_minutes=delay,
+                agent_note=note,
+                # The passenger was told the delayed time; the Scheduler Agent
+                # has not yet had a chance to improve on it.
+                notified_departure=exp if status == "delayed" else None,
             )
 
-        station = Station(
+        station = Station.objects.create(
             name="Dhaka (Kamalapur)",
             code="DHKA",
             passengers_on_site=3180,
             capacity=3500,
         )
-        db.session.add(station)
-        db.session.flush()
 
         for number, occupancy, capacity, waiting_for in PLATFORMS:
-            db.session.add(
-                Platform(
-                    station_id=station.id,
-                    number=number,
-                    occupancy=occupancy,
-                    capacity=capacity,
-                    waiting_for=waiting_for,
-                )
+            Platform.objects.create(
+                station=station,
+                number=number,
+                occupancy=occupancy,
+                capacity=capacity,
+                waiting_for=waiting_for,
             )
 
         for number, scheduled, expected, plat, status in ARRIVALS:
-            db.session.add(
-                Arrival(
-                    station_id=station.id,
-                    train_id=trains[number].id,
-                    scheduled=scheduled,
-                    expected=expected,
-                    platform=plat,
-                    status=status,
-                )
+            Arrival.objects.create(
+                station=station,
+                train=trains[number],
+                scheduled=scheduled,
+                expected=expected,
+                platform=plat,
+                status=status,
             )
 
         for agent, severity, logged_at, message in AGENT_LOGS:
-            db.session.add(
-                AgentLog(
-                    agent=agent,
-                    severity=severity,
-                    logged_at=logged_at,
-                    message=message,
-                )
+            AgentLog.objects.create(
+                agent=agent,
+                severity=severity,
+                logged_at=logged_at,
+                message=message,
             )
 
-        db.session.commit()
-
-        print("Database seeded:")
-        print(f"  trains     {Train.query.count()}")
-        print(f"  bookings   {Booking.query.count()}")
-        print(f"  platforms  {Platform.query.count()}")
-        print(f"  arrivals   {Arrival.query.count()}")
-        print(f"  agent logs {AgentLog.query.count()}")
-
-
-if __name__ == "__main__":
-    seed()
+        self.stdout.write("Database seeded:")
+        self.stdout.write(f"  trains     {Train.objects.count()}")
+        self.stdout.write(f"  bookings   {Booking.objects.count()}")
+        self.stdout.write(f"  platforms  {Platform.objects.count()}")
+        self.stdout.write(f"  arrivals   {Arrival.objects.count()}")
+        self.stdout.write(f"  agent logs {AgentLog.objects.count()}")

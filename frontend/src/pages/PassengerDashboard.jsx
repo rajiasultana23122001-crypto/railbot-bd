@@ -7,7 +7,7 @@ import './Dashboard.css'
 /**
  * Passenger Dashboard — what a traveller sees.
  *
- * Journeys come from the Flask API. The summary figures are derived from that
+ * Journeys come from the Django API. The summary figures are derived from that
  * response rather than stored separately, so they cannot drift out of step.
  */
 function PassengerDashboard() {

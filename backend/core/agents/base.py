@@ -13,7 +13,7 @@ reasoning, and every action it takes lands in the audit trail.
 
 from datetime import datetime
 
-from models import AgentLog, db
+from core.models import AgentLog
 
 
 def clock():
@@ -47,11 +47,9 @@ class BaseAgent:
 
     def log(self, message, severity="info"):
         """Write one line into the audit trail the Advisor Agent reads."""
-        entry = AgentLog(
+        return AgentLog.objects.create(
             agent=self.name,
             severity=severity,
             message=message,
             logged_at=clock(),
         )
-        db.session.add(entry)
-        return entry

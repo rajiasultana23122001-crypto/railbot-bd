@@ -1,4 +1,4 @@
-"""Advisor Agent — reads the audit trail and looks for patterns.
+"""Advisor Agent - reads the audit trail and looks for patterns.
 
 The other four agents each handle one incident at a time. This one steps back
 over the whole log and reports what keeps recurring, which is where timetable
@@ -7,7 +7,7 @@ changes come from rather than same-day firefighting.
 
 from collections import Counter
 
-from models import AgentLog, Booking, Platform, db
+from core.models import AgentLog, Booking, Platform
 
 from .base import BaseAgent
 
@@ -22,9 +22,9 @@ class AdvisorAgent(BaseAgent):
     def observe(self):
         """The full audit trail, plus the current state it describes."""
         return {
-            "logs": AgentLog.query.all(),
-            "bookings": Booking.query.all(),
-            "platforms": Platform.query.all(),
+            "logs": list(AgentLog.objects.all()),
+            "bookings": list(Booking.objects.select_related("train")),
+            "platforms": list(Platform.objects.all()),
         }
 
     def reason(self, observation):
@@ -83,10 +83,9 @@ class AdvisorAgent(BaseAgent):
         Re-running the cycle should not fill the feed with duplicates of advice
         the station master has already been given.
         """
-        already_said = {
-            log.message
-            for log in AgentLog.query.filter_by(agent=self.name).all()
-        }
+        already_said = set(
+            AgentLog.objects.filter(agent=self.name).values_list("message", flat=True)
+        )
 
         added = []
         for suggestion in decision["suggestions"]:
@@ -94,7 +93,6 @@ class AdvisorAgent(BaseAgent):
                 self.log(suggestion, severity="info")
                 added.append(suggestion)
 
-        db.session.commit()
         return {
             "totalDecisions": decision["totalDecisions"],
             "byAgent": decision["byAgent"],
