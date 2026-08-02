@@ -1,39 +1,91 @@
 /* ==========================================================================
-   Layout: navigation bar + page shell
+   Shell: left rail, top bar, page canvas
    ========================================================================== */
 
 .app {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  background: var(--page);
+  color: var(--ink);
 }
 
-/* ---------- Navigation bar ---------- */
+/* ---------------- Left rail ---------------- */
+
+.rail {
+  background: var(--rail-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 0 18px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 18px;
+  flex: 1;
+}
+
+.rail-btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--rail-ink);
+  transition: background 0.15s, color 0.15s;
+}
+
+.rail-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--rail-ink-active);
+}
+
+.rail-btn.is-active {
+  background: var(--rail-active);
+  color: var(--rail-ink-active);
+}
+
+.rail-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rail-menu {
+  color: var(--rail-ink-active);
+}
+
+/* ---------------- Top bar ---------------- */
 
 .navbar {
-  background: var(--navy);
-  color: #fff;
+  background: var(--bar-bg);
+  color: var(--bar-ink);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 10px clamp(16px, 4vw, 40px);
-  /* min-height, not height: on narrow screens the links wrap onto a second
-     row and a fixed height would clip them. */
-  min-height: 62px;
+  gap: 20px;
+  padding: 12px clamp(16px, 3vw, 32px);
+  min-height: 64px;
   flex-wrap: wrap;
 }
 
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 18px;
+  gap: 11px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.2px;
 }
 
-/* The small rail-track mark, echoing the title slide of the presentation. */
 .navbar-mark {
   display: flex;
   gap: 3px;
@@ -41,77 +93,118 @@
 
 .navbar-mark span {
   width: 3px;
-  height: 16px;
-  background: var(--amber);
+  height: 17px;
+  background: var(--gold);
   border-radius: 1px;
 }
 
 .navbar-brand em {
   font-style: normal;
-  color: var(--amber);
+  color: var(--gold);
 }
 
 .navbar-links {
   display: flex;
-  gap: 4px;
+  gap: 6px;
+  align-items: center;
 }
 
 .navbar-links a {
-  padding: 8px 14px;
-  border-radius: 6px;
+  padding: 9px 16px;
+  border-radius: 8px;
   font-size: 14.5px;
-  color: #c9d6e3;
+  color: var(--bar-ink-soft);
   transition: background 0.15s, color 0.15s;
 }
 
 .navbar-links a:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  color: var(--bar-ink);
 }
 
 /* react-router adds .active to the link matching the current URL. */
 .navbar-links a.active {
-  background: rgba(217, 142, 59, 0.16);
-  color: var(--amber);
+  background: var(--gold-soft);
+  color: var(--gold);
   font-weight: 600;
 }
 
-/* ---------- Page shell ---------- */
+/* ---------------- Page canvas ---------------- */
+
+.app-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 
 .app-main {
   flex: 1;
   width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 32px clamp(16px, 4vw, 40px) 56px;
+  padding: 28px clamp(16px, 3vw, 36px) 56px;
+  position: relative;
+}
+
+/* The route drawing sits behind the passenger heading, never the station one. */
+.route-map {
+  position: absolute;
+  top: -10px;
+  right: 0;
+  width: min(46%, 520px);
+  height: auto;
+  color: var(--ink-faint);
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.theme-station .route-map {
+  display: none;
+}
+
+.page-header,
+.stat-row,
+.journey-list,
+.panel,
+.panel-grid,
+.cycle-report,
+.feedback,
+.station-grid {
+  position: relative;
+  z-index: 1;
 }
 
 .page-eyebrow {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--amber);
-  margin-bottom: 6px;
+  color: var(--gold);
+  margin-bottom: 7px;
 }
 
 .page-title {
-  font-size: clamp(22px, 3vw, 28px);
-  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.4vw, 34px);
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: -0.01em;
+}
+
+.theme-station .page-title {
+  color: var(--ink);
 }
 
 .page-subtitle {
-  margin-top: 8px;
+  margin-top: 9px;
   color: var(--ink-soft);
-  font-size: 15px;
-  max-width: 65ch;
+  font-size: 14.5px;
+  max-width: 58ch;
 }
 
 .page-header {
-  margin-bottom: 28px;
+  margin-bottom: 26px;
 }
 
-/* Temporary marker for sections that arrive in a later step. */
 .placeholder {
   border: 1px dashed var(--border);
   border-radius: var(--radius);
@@ -120,4 +213,21 @@
   text-align: center;
   color: var(--ink-faint);
   font-size: 14.5px;
+}
+
+/* ---------------- Narrow screens ---------------- */
+
+@media (max-width: 640px) {
+  .app {
+    grid-template-columns: 52px 1fr;
+  }
+
+  .rail-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .route-map {
+    display: none;
+  }
 }

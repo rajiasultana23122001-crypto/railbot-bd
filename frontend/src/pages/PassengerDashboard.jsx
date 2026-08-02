@@ -1,5 +1,7 @@
 import JourneyCard from '../components/JourneyCard'
+import RouteMap from '../components/RouteMap'
 import { ErrorMessage, Loading } from '../components/Feedback'
+import { IconAlert, IconBell, IconClock, IconTrain } from '../components/icons'
 import { fetchJourneys } from '../api/client'
 import { useApi } from '../api/useApi'
 import './Dashboard.css'
@@ -14,14 +16,17 @@ function PassengerDashboard() {
   const { data, loading, error } = useApi(fetchJourneys)
 
   const header = (
-    <div className="page-header">
-      <p className="page-eyebrow">Passenger View</p>
-      <h1 className="page-title">Your Journeys</h1>
-      <p className="page-subtitle">
-        Track your booked trains and see delay updates the moment RailBot's
-        agents detect them.
-      </p>
-    </div>
+    <>
+      <RouteMap />
+      <div className="page-header">
+        <p className="page-eyebrow">Passenger View</p>
+        <h1 className="page-title">Your Journeys</h1>
+        <p className="page-subtitle">
+          Track your booked trains and see delay updates the moment RailBot's
+          agents detect them.
+        </p>
+      </div>
+    </>
   )
 
   if (loading) {
@@ -47,10 +52,15 @@ function PassengerDashboard() {
   const atRiskCount = journeys.filter((j) => j.status === 'at-risk').length
 
   const stats = [
-    { label: 'Upcoming journeys', value: journeys.length },
-    { label: 'Currently delayed', value: delayedCount, tone: 'late' },
-    { label: 'Flagged at risk', value: atRiskCount, tone: 'warn' },
-    { label: 'Alerts received', value: data.alertsReceived },
+    { label: 'Upcoming journeys', value: journeys.length, Art: IconClock },
+    {
+      label: 'Currently delayed',
+      value: delayedCount,
+      tone: 'late',
+      Art: IconTrain,
+    },
+    { label: 'Flagged at risk', value: atRiskCount, tone: 'warn', Art: IconAlert },
+    { label: 'Alerts received', value: data.alertsReceived, Art: IconBell },
   ]
 
   return (
@@ -58,12 +68,15 @@ function PassengerDashboard() {
       {header}
 
       <section className="stat-row" aria-label="Journey summary">
-        {stats.map((stat) => (
-          <div className="stat-tile" key={stat.label}>
-            <p className={`stat-value ${stat.tone ? `stat-${stat.tone}` : ''}`}>
-              {stat.value}
-            </p>
-            <p className="stat-label">{stat.label}</p>
+        {stats.map(({ label, value, tone, Art }) => (
+          <div className="stat-tile" key={label}>
+            <div className="stat-body">
+              <p className={`stat-value ${tone ? `stat-${tone}` : ''}`}>{value}</p>
+              <p className="stat-label">{label}</p>
+            </div>
+            <span className="stat-art" aria-hidden="true">
+              <Art />
+            </span>
           </div>
         ))}
       </section>

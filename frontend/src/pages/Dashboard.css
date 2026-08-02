@@ -1,48 +1,109 @@
 /* ==========================================================================
-   Dashboard building blocks: stat tiles, journey cards, status badges.
-   Shared by the Passenger and Station Master views.
+   Dashboard building blocks.
+   Shared by both views; the theme class on the shell decides how they look.
    ========================================================================== */
 
-/* ---------- Summary tiles ---------- */
+/* ---------------- Summary tiles ---------------- */
 
 .stat-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 14px;
-  margin-bottom: 26px;
+  margin-bottom: 24px;
 }
 
 .stat-tile {
+  position: relative;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.stat-body {
+  min-width: 0;
 }
 
 .stat-value {
-  font-size: 30px;
+  font-family: var(--font-display);
+  font-size: 32px;
   font-weight: 700;
-  line-height: 1.1;
-  color: var(--navy);
+  line-height: 1.05;
+  color: var(--brand);
   font-variant-numeric: tabular-nums;
+}
+
+.theme-station .stat-value {
+  font-family: var(--font-body);
+  color: var(--ink);
 }
 
 .stat-value.stat-late {
   color: var(--late);
 }
-
 .stat-value.stat-warn {
   color: var(--warn);
 }
 
 .stat-label {
-  margin-top: 4px;
-  font-size: 13px;
+  margin-top: 5px;
+  font-size: 12.5px;
   color: var(--ink-soft);
 }
 
-/* ---------- Journey cards ---------- */
+/* The illustration or trend line sitting at the tile's right edge. */
+.stat-art {
+  color: var(--ink-faint);
+  opacity: 0.55;
+}
+
+.theme-passenger .stat-art {
+  color: var(--brand-2);
+  opacity: 0.3;
+}
+
+.stat-art svg {
+  width: 42px;
+  height: 42px;
+}
+
+/* ---------------- Sparklines ---------------- */
+
+.sparkline {
+  overflow: visible;
+}
+
+.spark-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.spark-area {
+  fill: currentColor;
+  opacity: 0.13;
+  stroke: none;
+}
+
+.spark-neutral {
+  color: var(--brand);
+}
+.spark-warn {
+  color: var(--warn);
+}
+.spark-late {
+  color: var(--late);
+}
+
+/* ---------------- Journey cards ---------------- */
 
 .journey-list {
   display: flex;
@@ -66,14 +127,43 @@
   flex-wrap: wrap;
 }
 
+.journey-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  min-width: 0;
+}
+
+.journey-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--page-2);
+  color: var(--brand-2);
+}
+
+.journey-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
 .journey-train {
-  font-size: 17.5px;
+  font-family: var(--font-display);
+  font-size: 19px;
   font-weight: 700;
-  color: var(--navy);
+  color: var(--brand);
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 9px;
   flex-wrap: wrap;
+}
+
+.theme-station .journey-train {
+  font-family: var(--font-body);
+  color: var(--ink);
 }
 
 .journey-no {
@@ -89,7 +179,7 @@
   color: var(--ink-soft);
 }
 
-/* ---------- Fact grid ---------- */
+/* ---------------- Fact grid ---------------- */
 
 .journey-facts {
   display: grid;
@@ -97,7 +187,7 @@
   gap: 14px 20px;
   margin: 18px 0 0;
   padding-top: 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-soft);
 }
 
 .journey-facts div {
@@ -105,16 +195,16 @@
 }
 
 .journey-facts dt {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
 
 .journey-facts dd {
-  margin: 3px 0 0;
-  font-size: 14.5px;
+  margin: 4px 0 0;
+  font-size: 15px;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
@@ -125,9 +215,10 @@
 
 .time-new {
   color: var(--late);
+  font-weight: 700;
 }
 
-/* ---------- Delay line and agent note ---------- */
+/* ---------------- Delay line and agent note ---------------- */
 
 .journey-delay {
   margin-top: 14px;
@@ -138,9 +229,9 @@
 
 .agent-note {
   margin-top: 14px;
-  padding: 12px 14px;
-  background: var(--page);
-  border-radius: 8px;
+  padding: 13px 15px;
+  background: var(--page-2);
+  border-radius: var(--radius-sm);
   font-size: 13.5px;
   line-height: 1.55;
   color: var(--ink-soft);
@@ -148,22 +239,27 @@
 
 .agent-note-label {
   display: inline-block;
-  margin-right: 8px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--navy);
+  margin-right: 9px;
+  padding: 2px 9px;
+  border-radius: 5px;
+  background: var(--brand);
   color: #fff;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   vertical-align: 1px;
 }
 
-/* ---------- Status badges ---------- */
+.theme-station .agent-note-label {
+  background: var(--brand);
+  color: #04121a;
+}
+
+/* ---------------- Status badges ---------------- */
 
 .badge {
   display: inline-block;
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   font-size: 12.5px;
   font-weight: 600;
@@ -174,56 +270,289 @@
   background: var(--ok-soft);
   color: var(--ok);
 }
-
 .badge-at-risk {
   background: var(--warn-soft);
   color: var(--warn);
 }
-
 .badge-delayed {
   background: var(--late-soft);
   color: var(--late);
 }
 
-/* ---------- Run agent cycle ---------- */
+/* ==========================================================================
+   Station Master Panel
+   ========================================================================== */
 
-.page-header-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
+/* Crowding down the left, work in the middle, the log on the right. */
+.station-grid {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
 }
 
-.run-button {
-  flex-shrink: 0;
-  padding: 10px 18px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--navy);
-  color: #fff;
+@media (max-width: 1180px) {
+  .station-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .station-grid .col-mid {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .station-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.col-mid,
+.col-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+}
+
+.panel-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  padding-bottom: 12px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/* ---------------- Platform crowding ---------------- */
+
+.platform-list,
+.alert-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.platform-list {
+  gap: 17px;
+}
+
+.platform-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.platform-name {
   font-size: 14px;
   font-weight: 600;
-  transition: background 0.15s;
+  color: var(--ink);
 }
 
-.run-button:hover:not(:disabled) {
-  background: var(--steel);
+.platform-count {
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
 }
 
-.run-button:disabled {
-  background: var(--ink-faint);
-  cursor: progress;
+.platform-waiting {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ink-soft);
 }
 
-/* ---------- Report a delay form ---------- */
+/* ---------------- Capacity meter ---------------- */
 
-.report-panel {
-  margin-bottom: 22px;
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 8px;
 }
+
+.meter-track {
+  flex: 1;
+  height: 11px;
+  border-radius: 999px;
+  background: var(--page-2);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+  padding: 2px;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.meter-clear {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ok) 55%, transparent), var(--ok));
+  box-shadow: var(--glow);
+}
+.meter-busy {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--warn) 55%, transparent), var(--warn));
+  box-shadow: var(--glow);
+}
+.meter-critical {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--late) 55%, transparent), var(--late));
+  box-shadow: var(--glow);
+}
+
+.meter-value {
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: right;
+}
+
+.meter-text-clear {
+  color: var(--ok);
+}
+.meter-text-busy {
+  color: var(--warn);
+}
+.meter-text-critical {
+  color: var(--late);
+}
+
+/* ---------------- Agent activity feed ---------------- */
+
+.alert-list {
+  gap: 14px;
+}
+
+.alert-row {
+  display: flex;
+  gap: 11px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.alert-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.alert-dot {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.alert-high .alert-dot {
+  background: var(--late-soft);
+  color: var(--late);
+}
+.alert-medium .alert-dot {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.alert-info .alert-dot {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.alert-main {
+  min-width: 0;
+}
+
+.alert-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.alert-agent {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.alert-time {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.alert-message {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* ---------------- Arrivals table ---------------- */
+
+/* The table scrolls inside its own box so the page never moves sideways. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.arrivals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 600px;
+}
+
+.arrivals-table th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0 14px 10px 0;
+  white-space: nowrap;
+}
+
+.arrivals-table td {
+  padding: 12px 14px 12px 0;
+  border-top: 1px solid var(--border-soft);
+  color: var(--ink);
+  vertical-align: middle;
+}
+
+.arrivals-table .num {
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-train {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.cell-no {
+  margin-left: 7px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------- Report a delay ---------------- */
 
 .form-hint {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--ink-soft);
   margin-bottom: 14px;
 }
@@ -242,8 +571,8 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  flex: 1 1 240px;
+  gap: 6px;
+  flex: 1 1 230px;
   min-width: 0;
 }
 
@@ -252,9 +581,9 @@
 }
 
 .field label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
@@ -263,10 +592,10 @@
 .field input {
   font: inherit;
   font-size: 14px;
-  padding: 9px 11px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--card);
+  border-radius: var(--radius-sm);
+  background: var(--page-2);
   color: var(--ink);
   width: 100%;
 }
@@ -277,38 +606,55 @@
 
 .field select:focus-visible,
 .field input:focus-visible {
-  border-color: var(--amber);
+  border-color: var(--gold);
 }
 
 .field select:disabled,
 .field input:disabled {
-  background: var(--page);
-  color: var(--ink-faint);
+  opacity: 0.6;
 }
 
-/* The submit button sits on the same baseline as the inputs beside it. */
-.delay-form .run-button {
-  height: 39px;
-}
+/* ---------------- Run button and cycle report ---------------- */
 
-.cycle-input {
-  font-size: 13.5px;
-  color: var(--ink-soft);
-  padding-bottom: 12px;
-  margin-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.cycle-input-label {
-  display: inline-block;
-  margin-right: 8px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--navy);
+.run-button {
+  flex-shrink: 0;
+  padding: 11px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--brand);
   color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.theme-station .run-button {
+  background: transparent;
+  border-color: var(--brand);
+  color: var(--brand);
+  box-shadow: var(--glow);
+}
+
+.run-button:hover:not(:disabled) {
+  background: var(--brand-2);
+  color: #fff;
+}
+
+.run-button:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.delay-form .run-button {
+  height: 42px;
+}
+
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .cycle-report {
@@ -317,15 +663,39 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 18px 22px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .cycle-title {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
-  color: var(--amber);
-  letter-spacing: 0.02em;
+  color: var(--gold);
+  letter-spacing: 0.03em;
   margin-bottom: 12px;
+}
+
+.cycle-input {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.cycle-input-label {
+  display: inline-block;
+  margin-right: 9px;
+  padding: 2px 9px;
+  border-radius: 5px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.theme-station .cycle-input-label {
+  color: #04121a;
 }
 
 /* Numbered because the order the agents run in is part of the design. */
@@ -343,8 +713,8 @@
 }
 
 .cycle-agent {
-  font-weight: 600;
-  color: var(--navy);
+  font-weight: 700;
+  color: var(--ink);
   margin-right: 8px;
 }
 
@@ -352,7 +722,7 @@
   content: '— ';
 }
 
-/* ---------- Loading and error states ---------- */
+/* ---------------- Loading and error ---------------- */
 
 .feedback {
   background: var(--card);
@@ -377,224 +747,4 @@
 .feedback-error span {
   color: var(--ink-soft);
   font-size: 13.5px;
-}
-
-/* ==========================================================================
-   Station Master Panel
-   ========================================================================== */
-
-.panel-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.panel {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 20px 22px;
-  margin-bottom: 16px;
-}
-
-/* Panels inside the grid are spaced by the grid gap, not their own margin. */
-.panel-grid .panel {
-  margin-bottom: 0;
-}
-
-.panel-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--navy);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-}
-
-/* ---------- Platform crowding ---------- */
-
-.platform-list,
-.alert-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.platform-list {
-  gap: 18px;
-}
-
-.platform-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.platform-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.platform-count {
-  font-size: 12.5px;
-  color: var(--ink-faint);
-  font-variant-numeric: tabular-nums;
-}
-
-.platform-waiting {
-  margin-top: 5px;
-  font-size: 12.5px;
-  color: var(--ink-soft);
-}
-
-/* ---------- Capacity meter ---------- */
-
-.meter {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 7px;
-}
-
-.meter-track {
-  flex: 1;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--page);
-  overflow: hidden;
-}
-
-.meter-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.3s ease;
-}
-
-.meter-clear {
-  background: var(--ok);
-}
-.meter-busy {
-  background: var(--warn);
-}
-.meter-critical {
-  background: var(--late);
-}
-
-.meter-value {
-  font-size: 12.5px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  min-width: 38px;
-  text-align: right;
-}
-
-.meter-text-clear {
-  color: var(--ok);
-}
-.meter-text-busy {
-  color: var(--warn);
-}
-.meter-text-critical {
-  color: var(--late);
-}
-
-/* ---------- Agent activity feed ---------- */
-
-.alert-list {
-  gap: 14px;
-}
-
-.alert-row {
-  padding-left: 14px;
-  border-left: 3px solid var(--border);
-}
-
-.alert-high {
-  border-left-color: var(--late);
-}
-.alert-medium {
-  border-left-color: var(--warn);
-}
-.alert-info {
-  border-left-color: var(--steel);
-}
-
-.alert-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.alert-agent {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--navy);
-}
-
-.alert-time {
-  font-size: 12px;
-  color: var(--ink-faint);
-  font-variant-numeric: tabular-nums;
-}
-
-.alert-message {
-  margin-top: 3px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--ink-soft);
-}
-
-/* ---------- Arrivals table ---------- */
-
-/* The table must scroll inside its own box so the page never moves sideways. */
-.table-scroll {
-  overflow-x: auto;
-}
-
-.arrivals-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13.5px;
-  min-width: 620px;
-}
-
-.arrivals-table th {
-  text-align: left;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  padding: 0 14px 10px 0;
-  white-space: nowrap;
-}
-
-.arrivals-table td {
-  padding: 12px 14px 12px 0;
-  border-top: 1px solid var(--border);
-  color: var(--ink);
-  vertical-align: middle;
-}
-
-.arrivals-table .num {
-  font-variant-numeric: tabular-nums;
-}
-
-.cell-train {
-  font-weight: 600;
-  color: var(--navy);
-}
-
-.cell-no {
-  margin-left: 7px;
-  font-size: 11.5px;
-  color: var(--ink-faint);
-  font-variant-numeric: tabular-nums;
 }

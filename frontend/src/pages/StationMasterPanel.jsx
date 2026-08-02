@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import CapacityMeter, { crowdLevel } from '../components/CapacityMeter'
 import DelayForm from '../components/DelayForm'
+import Sparkline from '../components/Sparkline'
 import StatusBadge from '../components/StatusBadge'
 import { ErrorMessage, Loading } from '../components/Feedback'
 import { fetchStation, reportDelay, runAgentCycle } from '../api/client'
@@ -10,6 +11,17 @@ import './Dashboard.css'
 
 /** The station this panel monitors. Later this becomes a picker. */
 const STATION_CODE = 'DHKA'
+
+/**
+ * Short tag shown in the coloured disc beside each agent's log entry.
+ *
+ * Two letters from the first word, not one from each: "Risk Agent" and
+ * "Resource Agent" would both come out as RA otherwise, and the two do very
+ * different things.
+ */
+function initials(agentName) {
+  return agentName.slice(0, 2).toUpperCase()
+}
 
 /** Turn one agent's result into a single line for the summary strip. */
 function summarise(result) {
@@ -48,8 +60,8 @@ function summarise(result) {
 /**
  * Station Master Control Panel — what station staff see.
  *
- * Laid out summary first, then the two things staff act on: which platforms are
- * filling up, and what the agents have already decided.
+ * Crowding down the left, the work in the middle, the agents' running log on
+ * the right: the two things staff act on stay visible while they type.
  */
 function StationMasterPanel() {
   const { data, loading, error, reload } = useApi(() => fetchStation(STATION_CODE))
@@ -77,13 +89,19 @@ function StationMasterPanel() {
   const handleRunAgents = () => runAndRefresh(runAgentCycle)
   const handleReportDelay = (input) => runAndRefresh(() => reportDelay(input))
 
+  const heading = (title) => (
+    <div className="page-header page-header-row">
+      <div>
+        <p className="page-eyebrow">Station Control</p>
+        <h1 className="page-title">{title}</h1>
+      </div>
+    </div>
+  )
+
   if (loading) {
     return (
       <>
-        <div className="page-header">
-          <p className="page-eyebrow">Station Control</p>
-          <h1 className="page-title">Station Master Panel</h1>
-        </div>
+        {heading('Station Master Panel')}
         <Loading what="station data" />
       </>
     )
@@ -92,10 +110,7 @@ function StationMasterPanel() {
   if (error) {
     return (
       <>
-        <div className="page-header">
-          <p className="page-eyebrow">Station Control</p>
-          <h1 className="page-title">Station Master Panel</h1>
-        </div>
+        {heading('Station Master Panel')}
         <ErrorMessage message={error} />
       </>
     )
@@ -112,14 +127,30 @@ function StationMasterPanel() {
   const delayedArrivals = arrivals.filter((a) => a.status !== 'on-time').length
 
   const stats = [
-    { label: 'Passengers on site', value: station.passengersOnSite.toLocaleString() },
+    {
+      label: 'Passengers on site',
+      value: station.passengersOnSite.toLocaleString(),
+      seed: station.passengersOnSite,
+      tone: null,
+    },
     {
       label: 'Station occupancy',
       value: `${occupancyPercent}%`,
+      seed: occupancyPercent * 31,
       tone: occupancyPercent >= 90 ? 'late' : occupancyPercent >= 70 ? 'warn' : null,
     },
-    { label: 'Platforms under pressure', value: crowdedPlatforms, tone: 'warn' },
-    { label: 'Arrivals off schedule', value: delayedArrivals, tone: 'late' },
+    {
+      label: 'Platforms under pressure',
+      value: crowdedPlatforms,
+      seed: crowdedPlatforms * 137 + 11,
+      tone: 'warn',
+    },
+    {
+      label: 'Arrivals off schedule',
+      value: delayedArrivals,
+      seed: delayedArrivals * 211 + 29,
+      tone: 'late',
+    },
   ]
 
   return (
@@ -143,14 +174,6 @@ function StationMasterPanel() {
           {running ? 'Agents running…' : 'Run agent cycle'}
         </button>
       </div>
-
-      <section className="panel report-panel">
-        <h2 className="panel-title">Report a Delay</h2>
-        <p className="form-hint">
-          Enter what has happened. The agents decide what to do about it.
-        </p>
-        <DelayForm onSubmit={handleReportDelay} busy={running} />
-      </section>
 
       {cycleError && <ErrorMessage message={cycleError} />}
 
@@ -187,19 +210,8 @@ function StationMasterPanel() {
         </section>
       )}
 
-      <section className="stat-row" aria-label="Station summary">
-        {stats.map((stat) => (
-          <div className="stat-tile" key={stat.label}>
-            <p className={`stat-value ${stat.tone ? `stat-${stat.tone}` : ''}`}>
-              {stat.value}
-            </p>
-            <p className="stat-label">{stat.label}</p>
-          </div>
-        ))}
-      </section>
-
-      <div className="panel-grid">
-        <section className="panel">
+      <div className="station-grid">
+        <section className="panel col-left">
           <h2 className="panel-title">Platform Crowding</h2>
           <ul className="platform-list">
             {platforms.map((p) => (
@@ -219,62 +231,97 @@ function StationMasterPanel() {
           </ul>
         </section>
 
-        <section className="panel">
-          <h2 className="panel-title">Agent Activity</h2>
-          <ul className="alert-list">
-            {agentAlerts.map((alert) => (
-              <li className={`alert-row alert-${alert.severity}`} key={alert.id}>
-                <div className="alert-head">
-                  <span className="alert-agent">{alert.agent}</span>
-                  <span className="alert-time">{alert.time}</span>
-                </div>
-                <p className="alert-message">{alert.message}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
+        <div className="col-mid">
+          <section className="panel">
+            <h2 className="panel-title">Report a Delay</h2>
+            <p className="form-hint">
+              Enter what has happened. The agents decide what to do about it.
+            </p>
+            <DelayForm onSubmit={handleReportDelay} busy={running} />
+          </section>
 
-      <section className="panel">
-        <h2 className="panel-title">Inbound Trains</h2>
-        <div className="table-scroll">
-          <table className="arrivals-table">
-            <thead>
-              <tr>
-                <th>Train</th>
-                <th>From</th>
-                <th>Scheduled</th>
-                <th>Expected</th>
-                <th>Platform</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {arrivals.map((a) => (
-                <tr key={a.id}>
-                  <td>
-                    <span className="cell-train">{a.train}</span>
-                    <span className="cell-no">#{a.trainNo}</span>
-                  </td>
-                  <td>{a.from}</td>
-                  <td className="num">{a.scheduled}</td>
-                  <td className="num">
-                    {a.status === 'delayed' ? (
-                      <strong className="time-new">{a.expected}</strong>
-                    ) : (
-                      a.expected
-                    )}
-                  </td>
-                  <td className="num">{a.platform}</td>
-                  <td>
-                    <StatusBadge status={a.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <section className="stat-row" aria-label="Station summary">
+            {stats.map((stat) => (
+              <div className="stat-tile" key={stat.label}>
+                <div className="stat-body">
+                  <p
+                    className={`stat-value ${stat.tone ? `stat-${stat.tone}` : ''}`}
+                  >
+                    {stat.value}
+                  </p>
+                  <p className="stat-label">{stat.label}</p>
+                </div>
+                <span className="stat-art">
+                  <Sparkline seed={stat.seed} tone={stat.tone ?? 'neutral'} />
+                </span>
+              </div>
+            ))}
+          </section>
+
+          <section className="panel">
+            <h2 className="panel-title">Inbound Trains</h2>
+            <div className="table-scroll">
+              <table className="arrivals-table">
+                <thead>
+                  <tr>
+                    <th>Train</th>
+                    <th>From</th>
+                    <th>Scheduled</th>
+                    <th>Expected</th>
+                    <th>Platform</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {arrivals.map((a) => (
+                    <tr key={a.id}>
+                      <td>
+                        <span className="cell-train">{a.train}</span>
+                        <span className="cell-no">#{a.trainNo}</span>
+                      </td>
+                      <td>{a.from}</td>
+                      <td className="num">{a.scheduled}</td>
+                      <td className="num">
+                        {a.status === 'delayed' ? (
+                          <strong className="time-new">{a.expected}</strong>
+                        ) : (
+                          a.expected
+                        )}
+                      </td>
+                      <td className="num">{a.platform}</td>
+                      <td>
+                        <StatusBadge status={a.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </div>
-      </section>
+
+        <div className="col-side">
+          <section className="panel">
+            <h2 className="panel-title">Agent Log</h2>
+            <ul className="alert-list">
+              {agentAlerts.map((alert) => (
+                <li className={`alert-row alert-${alert.severity}`} key={alert.id}>
+                  <span className="alert-dot" aria-hidden="true">
+                    {initials(alert.agent)}
+                  </span>
+                  <div className="alert-main">
+                    <div className="alert-head">
+                      <span className="alert-agent">{alert.agent}</span>
+                      <span className="alert-time">{alert.time}</span>
+                    </div>
+                    <p className="alert-message">{alert.message}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </div>
     </>
   )
 }

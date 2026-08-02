@@ -1,4 +1,5 @@
 import StatusBadge from './StatusBadge'
+import { IconTrain } from './icons'
 
 /**
  * One booked journey.
@@ -12,14 +13,19 @@ function JourneyCard({ journey }) {
   return (
     <article className={`journey-card journey-${journey.status}`}>
       <div className="journey-top">
-        <div>
-          <h2 className="journey-train">
-            {journey.train}
-            <span className="journey-no">#{journey.trainNo}</span>
-          </h2>
-          <p className="journey-route">
-            {journey.from} <span aria-hidden="true">→</span> {journey.to}
-          </p>
+        <div className="journey-head">
+          <span className="journey-icon" aria-hidden="true">
+            <IconTrain />
+          </span>
+          <div>
+            <h2 className="journey-train">
+              {journey.train}
+              <span className="journey-no">#{journey.trainNo}</span>
+            </h2>
+            <p className="journey-route">
+              {journey.from} <span aria-hidden="true">→</span> {journey.to}
+            </p>
+          </div>
         </div>
         <StatusBadge status={journey.status} />
       </div>

@@ -1,38 +1,99 @@
 /* ==========================================================================
    RailBot BD — global styles
-   Colours match the project presentation: deep navy + railway signal amber.
+
+   Two visual worlds, one application:
+
+   .theme-passenger  warm paper, deep green, gold. Calm, for a traveller.
+   .theme-station    dark control room, lit meters. Operational, for staff.
+
+   Every component reads the same token names, so a screen only has to declare
+   which world it lives in.
    ========================================================================== */
 
 :root {
-  /* Brand */
-  --navy: #12182b;
-  --steel: #3d5a80;
-  --amber: #d98e3b;
+  --radius: 12px;
+  --radius-sm: 8px;
 
-  /* Text */
-  --ink: #1b2733;
-  --ink-soft: #4b5b6b;
-  --ink-faint: #8496a5;
+  --font-body: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-mono: Consolas, "Courier New", monospace;
 
-  /* Surfaces */
-  --page: #eef2f6;
-  --card: #ffffff;
-  --border: #dde4ea;
+  font-family: var(--font-body);
+  line-height: 1.55;
+}
 
-  /* Status colours, used by the dashboards later on */
-  --ok: #2e7d5b;
-  --ok-soft: #e3f2ea;
-  --warn: #b9791f;
-  --warn-soft: #fbf0dd;
-  --late: #b4442f;
-  --late-soft: #fbe6e2;
+/* ---------------- Passenger: warm paper ---------------- */
+.theme-passenger {
+  --page: #f2efe6;
+  --page-2: #e9e5d9;
+  --card: #fffefb;
+  --border: #ddd7c7;
+  --border-soft: #e8e3d6;
 
-  --radius: 10px;
-  --shadow: 0 1px 2px rgba(18, 24, 43, 0.06);
+  --brand: #14432c;
+  --brand-2: #1e5c3c;
+  --gold: #c08c2e;
+  --gold-soft: #f0e4c8;
 
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-  color: var(--ink);
+  --ink: #1b2a22;
+  --ink-soft: #5b6b61;
+  --ink-faint: #8d9b92;
+
+  --ok: #2f6f4f;
+  --ok-soft: #e0eee4;
+  --warn: #a8721c;
+  --warn-soft: #f7ecd5;
+  --late: #a8402c;
+  --late-soft: #f7e3de;
+
+  --rail-bg: #123a27;
+  --rail-ink: #9dbdaa;
+  --rail-ink-active: #f0e4c8;
+  --rail-active: rgba(192, 140, 46, 0.22);
+
+  --bar-bg: #14432c;
+  --bar-ink: #ffffff;
+  --bar-ink-soft: #a9c6b5;
+
+  --shadow: 0 1px 2px rgba(20, 40, 30, 0.05), 0 8px 20px -14px rgba(20, 40, 30, 0.3);
+  --glow: none;
+}
+
+/* ---------------- Station: dark control room ---------------- */
+.theme-station {
+  --page: #070c14;
+  --page-2: #0a111b;
+  --card: #101a27;
+  --border: #1e2f42;
+  --border-soft: #17243354;
+
+  --brand: #4fd1e0;
+  --brand-2: #2f9fb4;
+  --gold: #e0a44a;
+  --gold-soft: #35281455;
+
+  --ink: #dce8f5;
+  --ink-soft: #91a7be;
+  --ink-faint: #67809a;
+
+  --ok: #46c489;
+  --ok-soft: #102c22;
+  --warn: #e0a44a;
+  --warn-soft: #33260f;
+  --late: #e2604c;
+  --late-soft: #351812;
+
+  --rail-bg: #0a121d;
+  --rail-ink: #5d7794;
+  --rail-ink-active: #4fd1e0;
+  --rail-active: rgba(79, 209, 224, 0.14);
+
+  --bar-bg: #0c1622;
+  --bar-ink: #e6f1fb;
+  --bar-ink-soft: #8aa3bd;
+
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 18px 40px -26px rgba(0, 0, 0, 0.9);
+  --glow: 0 0 18px -4px rgba(79, 209, 224, 0.55);
 }
 
 * {
@@ -42,14 +103,15 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--page);
+  background: #070c14;
+  color: #dce8f5;
 }
 
 h1,
 h2,
 h3 {
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.2;
   text-wrap: balance;
 }
 
@@ -67,8 +129,18 @@ button {
   cursor: pointer;
 }
 
-/* Keyboard users must always be able to see what is focused. */
+svg {
+  flex-shrink: 0;
+}
+
 :focus-visible {
-  outline: 2px solid var(--amber);
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
