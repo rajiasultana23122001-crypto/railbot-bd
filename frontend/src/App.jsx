@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
@@ -7,21 +7,12 @@ import StationMasterPanel from './pages/StationMasterPanel'
 import './App.css'
 
 /**
- * App shell.
- *
- * The two screens serve different people in different situations, so each gets
- * its own visual world: warm paper for a traveller checking a journey, a dark
- * control room for staff watching a station. The theme class here is what the
- * stylesheets key off.
+ * App shell: the left rail and top bar stay put while <Routes> swaps the page
+ * underneath them.
  */
 function App() {
-  const { pathname } = useLocation()
-  const theme = pathname.startsWith('/station-master')
-    ? 'theme-station'
-    : 'theme-passenger'
-
   return (
-    <div className={`app ${theme}`}>
+    <div className="app">
       <Sidebar />
 
       <div className="app-body">

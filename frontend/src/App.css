@@ -144,7 +144,7 @@
   position: relative;
 }
 
-/* The route drawing sits behind the passenger heading, never the station one. */
+/* The route drawing sits behind the passenger heading. */
 .route-map {
   position: absolute;
   top: -10px;
@@ -155,10 +155,6 @@
   opacity: 0.4;
   pointer-events: none;
   z-index: 0;
-}
-
-.theme-station .route-map {
-  display: none;
 }
 
 .page-header,
@@ -188,10 +184,6 @@
   font-weight: 700;
   color: var(--brand);
   letter-spacing: -0.01em;
-}
-
-.theme-station .page-title {
-  color: var(--ink);
 }
 
 .page-subtitle {

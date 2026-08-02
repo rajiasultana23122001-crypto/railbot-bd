@@ -39,11 +39,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.theme-station .stat-value {
-  font-family: var(--font-body);
-  color: var(--ink);
-}
-
 .stat-value.stat-late {
   color: var(--late);
 }
@@ -59,13 +54,8 @@
 
 /* The illustration or trend line sitting at the tile's right edge. */
 .stat-art {
-  color: var(--ink-faint);
-  opacity: 0.55;
-}
-
-.theme-passenger .stat-art {
   color: var(--brand-2);
-  opacity: 0.3;
+  opacity: 0.35;
 }
 
 .stat-art svg {
@@ -161,11 +151,6 @@
   flex-wrap: wrap;
 }
 
-.theme-station .journey-train {
-  font-family: var(--font-body);
-  color: var(--ink);
-}
-
 .journey-no {
   font-size: 12.5px;
   font-weight: 600;
@@ -250,11 +235,6 @@
   vertical-align: 1px;
 }
 
-.theme-station .agent-note-label {
-  background: var(--brand);
-  color: #04121a;
-}
-
 /* ---------------- Status badges ---------------- */
 
 .badge {
@@ -280,15 +260,115 @@
 }
 
 /* ==========================================================================
+   Bangladesh map
+   ========================================================================== */
+
+.bd-map {
+  margin: 0;
+}
+
+.bd-map svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.bd-land {
+  fill: var(--page-2);
+  stroke: var(--border);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.bd-route {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+  transition: stroke 0.2s, stroke-width 0.2s, opacity 0.2s;
+}
+
+/* The selected route: thicker, in the brand gold, drawn as moving dashes so
+   it reads as a line being travelled rather than merely coloured in. */
+.bd-route.is-active {
+  stroke: var(--gold);
+  stroke-width: 4.5;
+  opacity: 1;
+  stroke-dasharray: 12 7;
+  animation: bd-travel 1.1s linear infinite;
+}
+
+@keyframes bd-travel {
+  to {
+    stroke-dashoffset: -19;
+  }
+}
+
+.bd-city circle {
+  fill: var(--card);
+  stroke: var(--brand-2);
+  stroke-width: 2;
+  transition: fill 0.2s, stroke 0.2s, r 0.2s;
+}
+
+.bd-city text {
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--ink-soft);
+  transition: fill 0.2s;
+}
+
+.bd-city.is-active circle {
+  fill: var(--gold);
+  stroke: var(--brand);
+  stroke-width: 2.5;
+}
+
+.bd-city.is-active text {
+  fill: var(--brand);
+  font-weight: 700;
+}
+
+.bd-caption {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  min-height: 40px;
+}
+
+.bd-caption-tag {
+  display: inline-block;
+  margin-right: 9px;
+  padding: 2px 9px;
+  border-radius: 5px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
    Station Master Panel
    ========================================================================== */
 
-/* Crowding down the left, work in the middle, the log on the right. */
+/* Map and crowding down the left, work in the middle, the log on the right. */
 .station-grid {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 320px;
+  grid-template-columns: 310px minmax(0, 1fr) 320px;
   gap: 16px;
   align-items: start;
+}
+
+.col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
 }
 
 @media (max-width: 1180px) {
@@ -399,15 +479,12 @@
 
 .meter-clear {
   background: linear-gradient(90deg, color-mix(in srgb, var(--ok) 55%, transparent), var(--ok));
-  box-shadow: var(--glow);
 }
 .meter-busy {
   background: linear-gradient(90deg, color-mix(in srgb, var(--warn) 55%, transparent), var(--warn));
-  box-shadow: var(--glow);
 }
 .meter-critical {
   background: linear-gradient(90deg, color-mix(in srgb, var(--late) 55%, transparent), var(--late));
-  box-shadow: var(--glow);
 }
 
 .meter-value {
@@ -549,6 +626,35 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Rows are selectable: picking one traces that train's route on the map. */
+.arrivals-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.arrivals-table tbody tr:hover {
+  background: var(--page-2);
+}
+
+.arrivals-table tbody tr.is-selected {
+  background: var(--gold-soft);
+}
+
+.arrivals-table tbody tr.is-selected .cell-train {
+  color: var(--brand);
+}
+
+/* A left edge marks the chosen row without shifting any column. */
+.arrivals-table tbody tr.is-selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.table-note {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
 /* ---------------- Report a delay ---------------- */
 
 .form-hint {
@@ -628,13 +734,6 @@
   transition: background 0.15s, box-shadow 0.15s;
 }
 
-.theme-station .run-button {
-  background: transparent;
-  border-color: var(--brand);
-  color: var(--brand);
-  box-shadow: var(--glow);
-}
-
 .run-button:hover:not(:disabled) {
   background: var(--brand-2);
   color: #fff;
@@ -692,10 +791,6 @@
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.05em;
-}
-
-.theme-station .cycle-input-label {
-  color: #04121a;
 }
 
 /* Numbered because the order the agents run in is part of the design. */

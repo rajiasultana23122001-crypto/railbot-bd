@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import BangladeshMap, { cityKey } from '../components/BangladeshMap'
 import CapacityMeter, { crowdLevel } from '../components/CapacityMeter'
 import DelayForm from '../components/DelayForm'
 import Sparkline from '../components/Sparkline'
@@ -70,6 +71,9 @@ function StationMasterPanel() {
   const [running, setRunning] = useState(false)
   const [cycleError, setCycleError] = useState(null)
 
+  // Which inbound train's route is traced on the map. Null means none.
+  const [selectedTrain, setSelectedTrain] = useState(null)
+
   /** Shared by both entry points: run something, then refresh this page. */
   async function runAndRefresh(action) {
     setRunning(true)
@@ -125,6 +129,10 @@ function StationMasterPanel() {
     (p) => crowdLevel(Math.round((p.occupancy / p.capacity) * 100)) !== 'clear',
   ).length
   const delayedArrivals = arrivals.filter((a) => a.status !== 'on-time').length
+
+  // Kept as an id rather than the object itself, so a refresh that rebuilds
+  // the array does not lose the selection.
+  const selected = arrivals.find((a) => a.id === selectedTrain) ?? null
 
   const stats = [
     {
@@ -211,25 +219,41 @@ function StationMasterPanel() {
       )}
 
       <div className="station-grid">
-        <section className="panel col-left">
-          <h2 className="panel-title">Platform Crowding</h2>
-          <ul className="platform-list">
-            {platforms.map((p) => (
-              <li className="platform-row" key={p.id}>
-                <div className="platform-head">
-                  <span className="platform-name">Platform {p.id}</span>
-                  <span className="platform-count">
-                    {p.occupancy} / {p.capacity}
-                  </span>
-                </div>
-                <CapacityMeter occupancy={p.occupancy} capacity={p.capacity} />
-                <p className="platform-waiting">
-                  {p.waitingFor ? `Waiting for ${p.waitingFor}` : 'No train assigned'}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <div className="col-left">
+          <section className="panel">
+            <h2 className="panel-title">Network Map</h2>
+            <BangladeshMap
+              activeCity={selected ? cityKey(selected.from) : null}
+              activeLabel={
+                selected
+                  ? `${selected.from} — ${station.name.replace(/\s*\(.*?\)\s*/g, '')} · ${selected.train}`
+                  : null
+              }
+            />
+          </section>
+
+          <section className="panel">
+            <h2 className="panel-title">Platform Crowding</h2>
+            <ul className="platform-list">
+              {platforms.map((p) => (
+                <li className="platform-row" key={p.id}>
+                  <div className="platform-head">
+                    <span className="platform-name">Platform {p.id}</span>
+                    <span className="platform-count">
+                      {p.occupancy} / {p.capacity}
+                    </span>
+                  </div>
+                  <CapacityMeter occupancy={p.occupancy} capacity={p.capacity} />
+                  <p className="platform-waiting">
+                    {p.waitingFor
+                      ? `Waiting for ${p.waitingFor}`
+                      : 'No train assigned'}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
 
         <div className="col-mid">
           <section className="panel">
@@ -274,7 +298,28 @@ function StationMasterPanel() {
                 </thead>
                 <tbody>
                   {arrivals.map((a) => (
-                    <tr key={a.id}>
+                    <tr
+                      key={a.id}
+                      className={a.id === selectedTrain ? 'is-selected' : ''}
+                      onClick={() =>
+                        setSelectedTrain((current) =>
+                          current === a.id ? null : a.id,
+                        )
+                      }
+                      // Reachable and toggleable from the keyboard, not just
+                      // by pointer.
+                      tabIndex={0}
+                      role="button"
+                      aria-pressed={a.id === selectedTrain}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          setSelectedTrain((current) =>
+                            current === a.id ? null : a.id,
+                          )
+                        }
+                      }}
+                    >
                       <td>
                         <span className="cell-train">{a.train}</span>
                         <span className="cell-no">#{a.trainNo}</span>
@@ -297,6 +342,11 @@ function StationMasterPanel() {
                 </tbody>
               </table>
             </div>
+            <p className="table-note">
+              {selected
+                ? `Tracing ${selected.train} from ${selected.from}. Select it again to clear.`
+                : 'Select a train to trace its route on the map.'}
+            </p>
           </section>
         </div>
 
