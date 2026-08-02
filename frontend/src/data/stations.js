@@ -6,6 +6,10 @@
  * file is what turns that list into a line on screen.
  */
 
+import { PROJECTION, VIEW } from './bangladesh'
+
+export { VIEW }
+
 // latitude, longitude
 export const STATIONS = {
   'Dhaka (Kamalapur)': [23.7328, 90.4265],
@@ -16,7 +20,8 @@ export const STATIONS = {
   Cumilla: [23.46, 91.18],
   Feni: [23.02, 91.4],
   Chattogram: [22.34, 91.83],
-  "Cox's Bazar": [21.44, 92.0],
+  // The station sits east of the town centre, inland of the beach.
+  "Cox's Bazar": [21.4419, 92.0105],
   Srimangal: [24.31, 91.73],
   Sylhet: [24.899, 91.87],
   Kishoreganj: [24.44, 90.78],
@@ -87,18 +92,20 @@ export const SHORT_NAME = {
   'Biman Bandar': 'Biman Bandar',
 }
 
-// The country's bounding box, and the box we draw into.
-const BOUNDS = { west: 88.0, east: 92.75, south: 20.6, north: 26.75 }
-export const VIEW = { width: 400, height: 560 }
-
-/** Longitude and latitude onto viewBox coordinates. */
+/**
+ * Longitude and latitude onto viewBox coordinates.
+ *
+ * Uses the constants the country outline was generated with, so a station
+ * always lands on the part of the map it belongs to.
+ */
 export function project(name) {
   const point = STATIONS[name]
   if (!point) return null
   const [lat, lon] = point
+  const { kx, scale, minX, minY, pad } = PROJECTION
   return {
-    x: ((lon - BOUNDS.west) / (BOUNDS.east - BOUNDS.west)) * VIEW.width,
-    y: ((BOUNDS.north - lat) / (BOUNDS.north - BOUNDS.south)) * VIEW.height,
+    x: (lon * kx - minX) * scale + pad,
+    y: (-lat - minY) * scale + pad,
   }
 }
 

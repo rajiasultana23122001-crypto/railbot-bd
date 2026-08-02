@@ -20,7 +20,8 @@ STATIONS = {
     "Cumilla": (23.4600, 91.1800),
     "Feni": (23.0200, 91.4000),
     "Chattogram": (22.3400, 91.8300),
-    "Cox's Bazar": (21.4400, 92.0000),
+    # The station sits east of the town centre, inland of the beach.
+    "Cox's Bazar": (21.4419, 92.0105),
     "Srimangal": (24.3100, 91.7300),
     "Sylhet": (24.8990, 91.8700),
     "Kishoreganj": (24.4400, 90.7800),
