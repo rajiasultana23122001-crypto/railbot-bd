@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import BangladeshMap, { cityKey } from '../components/BangladeshMap'
+import BangladeshMap from '../components/BangladeshMap'
 import CapacityMeter, { crowdLevel } from '../components/CapacityMeter'
 import DelayForm from '../components/DelayForm'
 import Sparkline from '../components/Sparkline'
@@ -223,10 +223,10 @@ function StationMasterPanel() {
           <section className="panel">
             <h2 className="panel-title">Network Map</h2>
             <BangladeshMap
-              activeCity={selected ? cityKey(selected.from) : null}
-              activeLabel={
+              route={selected?.route}
+              label={
                 selected
-                  ? `${selected.from} — ${station.name.replace(/\s*\(.*?\)\s*/g, '')} · ${selected.train}`
+                  ? `${selected.train} #${selected.trainNo} · ${selected.from} to Dhaka`
                   : null
               }
             />

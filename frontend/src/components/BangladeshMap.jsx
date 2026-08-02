@@ -1,51 +1,36 @@
+import {
+  CORRIDORS,
+  LABELLED,
+  SHORT_NAME,
+  STATIONS,
+  VIEW,
+  pathFor,
+  project,
+} from '../data/stations'
+
 /**
- * Bangladesh with the railway routes RailBot watches.
+ * Bangladesh with the intercity network drawn on it.
  *
- * City positions come from real coordinates projected onto the viewBox, so the
- * network sits where it should on the country rather than being placed by eye.
- * Selecting a train lights its route.
+ * Station positions are real coordinates projected onto the viewBox, so the
+ * lines land where they belong on the country. The backend sends a train's
+ * route as a list of station names and this traces it.
  */
-
-// Longitude 88.0-92.7 and latitude 20.6-26.7 mapped onto a 400 x 560 box.
-const CITIES = {
-  Dhaka: { x: 205, y: 274, label: 'Dhaka' },
-  Chattogram: { x: 322, y: 398, label: 'Chattogram' },
-  Sylhet: { x: 329, y: 165, label: 'Sylhet' },
-  Rajshahi: { x: 51, y: 214, label: 'Rajshahi' },
-  Dinajpur: { x: 54, y: 98, label: 'Dinajpur' },
-  Khulna: { x: 133, y: 356, label: 'Khulna' },
-}
-
-/**
- * Each route bends through the junctions the line actually passes, so a
- * highlighted route reads as a railway rather than a ruler line.
- */
-const ROUTES = {
-  Chattogram: 'M205,274 L232,300 L258,330 L288,362 L322,398',
-  Sylhet: 'M205,274 L232,248 L258,222 L292,192 L329,165',
-  Rajshahi: 'M205,274 L172,262 L136,244 L94,226 L51,214',
-  Dinajpur: 'M205,274 L170,254 L132,214 L96,158 L54,98',
-  Khulna: 'M205,274 L188,300 L172,322 L152,340 L133,356',
-}
-
-/** "Dhaka (Kamalapur)" and "Dhaka" are the same place to this map. */
-export function cityKey(name) {
-  if (!name) return null
-  const plain = name.replace(/\s*\(.*?\)\s*/g, '').trim()
-  return CITIES[plain] ? plain : null
-}
-
-function BangladeshMap({ activeCity, activeLabel }) {
-  const active = activeCity && ROUTES[activeCity] ? activeCity : null
+function BangladeshMap({ route, label }) {
+  const active = pathFor(route)
+  const onRoute = new Set(route ?? [])
 
   return (
     <figure className="bd-map">
-      <svg viewBox="0 0 400 560" role="img" aria-labelledby="mapTitle mapDesc">
-        <title id="mapTitle">Railway routes across Bangladesh</title>
+      <svg
+        viewBox={`0 0 ${VIEW.width} ${VIEW.height}`}
+        role="img"
+        aria-labelledby="mapTitle mapDesc"
+      >
+        <title id="mapTitle">Bangladesh Railway intercity network</title>
         <desc id="mapDesc">
           {active
-            ? `The route between Dhaka and ${CITIES[active].label} is highlighted.`
-            : 'Routes from Dhaka to Chattogram, Sylhet, Rajshahi, Dinajpur and Khulna.'}
+            ? `The route ${label} is highlighted across the network.`
+            : 'The intercity network, with no route selected.'}
         </desc>
 
         {/* Country outline */}
@@ -59,28 +44,34 @@ function BangladeshMap({ activeCity, activeLabel }) {
              L66,250 L75,214 L58,186 L67,150 L50,120 Z"
         />
 
-        {/* Every route, drawn faint */}
-        {Object.entries(ROUTES).map(([city, d]) => (
-          <path
-            key={city}
-            className={`bd-route ${active === city ? 'is-active' : ''}`}
-            d={d}
-          />
-        ))}
+        {/* The whole network, faint */}
+        {CORRIDORS.map((corridor, i) => {
+          const d = pathFor(corridor)
+          return d ? <path key={i} className="bd-route" d={d} /> : null
+        })}
+
+        {/* The selected service, on top */}
+        {active && <path className="bd-route is-active" d={active} />}
 
         {/* Stations */}
-        {Object.entries(CITIES).map(([key, city]) => {
-          const isEnd = key === active || (active && key === 'Dhaka')
+        {Object.keys(STATIONS).map((name) => {
+          const p = project(name)
+          if (!p) return null
+          const isOn = onRoute.has(name)
+          const isNamed = LABELLED.has(name) || isOn
+          const text = SHORT_NAME[name] ?? name
           return (
-            <g key={key} className={`bd-city ${isEnd ? 'is-active' : ''}`}>
-              <circle cx={city.x} cy={city.y} r={key === 'Dhaka' ? 6 : 5} />
-              <text
-                x={city.x}
-                y={city.y - 12}
-                textAnchor={city.x > 300 ? 'end' : city.x < 90 ? 'start' : 'middle'}
-              >
-                {city.label}
-              </text>
+            <g key={name} className={`bd-city ${isOn ? 'is-active' : ''}`}>
+              <circle cx={p.x} cy={p.y} r={isOn ? 5 : 3.2} />
+              {isNamed && (
+                <text
+                  x={p.x}
+                  y={p.y - 9}
+                  textAnchor={p.x > 300 ? 'end' : p.x < 80 ? 'start' : 'middle'}
+                >
+                  {text}
+                </text>
+              )}
             </g>
           )
         })}
@@ -90,7 +81,7 @@ function BangladeshMap({ activeCity, activeLabel }) {
         {active ? (
           <>
             <span className="bd-caption-tag">Route</span>
-            {activeLabel ?? `Dhaka — ${CITIES[active].label}`}
+            {label}
           </>
         ) : (
           'Select an inbound train to trace its route.'

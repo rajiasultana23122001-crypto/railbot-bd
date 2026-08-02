@@ -9,6 +9,7 @@ changes or a demo needs a clean slate.
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from core.data.network import TRAINS as NETWORK_TRAINS
 from core.models import (
     AgentLog,
     Arrival,
@@ -19,22 +20,9 @@ from core.models import (
     Train,
 )
 
-TRAINS = [
-    # name, number, origin, destination, distance km, scheduled halts
-    ("Subarna Express", "702", "Dhaka (Kamalapur)", "Chattogram", 320, 4),
-    ("Parabat Express", "709", "Dhaka (Kamalapur)", "Sylhet", 319, 11),
-    ("Padma Express", "759", "Dhaka (Kamalapur)", "Rajshahi", 343, 9),
-    ("Ekota Express", "765", "Dhaka (Kamalapur)", "Dinajpur", 400, 14),
-    ("Mohanagar Provati", "704", "Chattogram", "Dhaka (Kamalapur)", 320, 9),
-    ("Parabat Express (up)", "710", "Sylhet", "Dhaka (Kamalapur)", 319, 11),
-    ("Ekota Express (up)", "766", "Dinajpur", "Dhaka (Kamalapur)", 400, 14),
-    ("Padma Express (up)", "760", "Rajshahi", "Dhaka (Kamalapur)", 343, 9),
-    ("Chitra Express", "764", "Khulna", "Dhaka (Kamalapur)", 405, 13),
-]
-
 BOOKINGS = [
     # train number, date, scheduled, expected, platform, coach, status, delay, note
-    ("702", "1 Aug 2026", "07:00", "07:00", "4", "SNIGDHA / C1-24", "on-time", 0, None),
+    ("701", "1 Aug 2026", "07:00", "07:00", "4", "SNIGDHA / C1-24", "on-time", 0, None),
     (
         "709",
         "1 Aug 2026",
@@ -45,7 +33,7 @@ BOOKINGS = [
         "delayed",
         35,
         "Manager Agent called you at 17:52 with the new departure time. "
-        "Scheduler Agent trimmed halts at Bhairab Bazar and Shaistaganj to recover 12 minutes.",
+        "Scheduler Agent trimmed halts at Brahmanbaria and Srimangal to recover 12 minutes.",
     ),
     (
         "759",
@@ -59,7 +47,8 @@ BOOKINGS = [
         "Risk Agent predicts a 20-25 minute delay from heavy rainfall forecast "
         "near Ishwardi. You will be called if the delay is confirmed.",
     ),
-    ("765", "3 Aug 2026", "10:10", "10:10", "3", "SHOVAN / F1-45", "on-time", 0, None),
+    ("705", "3 Aug 2026", "10:10", "10:10", "3", "SHOVAN / F1-45", "on-time", 0, None),
+    ("725", "3 Aug 2026", "21:45", "21:45", "5", "AC_B / A1-12", "on-time", 0, None),
 ]
 
 PLATFORMS = [
@@ -76,9 +65,12 @@ ARRIVALS = [
     # train number, scheduled, expected, platform, status
     ("704", "14:35", "14:35", "1", "on-time"),
     ("710", "14:50", "15:25", "2", "delayed"),
-    ("766", "15:10", "15:10", "3", "on-time"),
+    ("706", "15:10", "15:10", "3", "on-time"),
     ("760", "15:40", "15:40", "6", "at-risk"),
     ("764", "16:05", "16:05", "4", "on-time"),
+    ("722", "16:30", "16:30", "1", "on-time"),
+    ("766", "16:55", "17:20", "5", "delayed"),
+    ("814", "17:15", "17:15", "2", "on-time"),
 ]
 
 # Oldest first, so the auto-increment id matches the real order of events.
@@ -121,15 +113,18 @@ class Command(BaseCommand):
         for model in (AgentLog, Arrival, Platform, Booking, Station, Passenger, Train):
             model.objects.all().delete()
 
+        # Origin and destination are the ends of the route, so the two can
+        # never disagree with the stations the train actually calls at.
         trains = {}
-        for name, number, origin, destination, distance, halts in TRAINS:
+        for name, number, route, distance, halts in NETWORK_TRAINS:
             trains[number] = Train.objects.create(
                 name=name,
                 number=number,
-                origin=origin,
-                destination=destination,
+                origin=route[0],
+                destination=route[-1],
                 distance_km=distance,
                 scheduled_halts=halts,
+                route=route,
             )
 
         passenger = Passenger.objects.create(

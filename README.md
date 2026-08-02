@@ -123,6 +123,26 @@ new calls, no repeated alerts and no duplicate advice.
 
 To run a cycle without the frontend: `venv\Scripts\python run_agents.py`
 
+## The network data
+
+`backend/core/data/network.py` holds the intercity network: 36 stations, 15
+corridors and 52 services covering Dhaka–Chattogram, Cox's Bazar, Sylhet,
+Rajshahi, Khulna, the northern lines to Panchagarh and Chilahati, and the
+Mymensingh and Kishoreganj branches.
+
+Station coordinates are real latitude and longitude, projected onto the map's
+viewBox in `frontend/src/data/stations.js`, so a route is drawn where it
+actually runs rather than placed by eye. Selecting an inbound train traces its
+route across the country.
+
+**On accuracy:** train names, numbers and the stations each service calls at
+are compiled from published route information. The departure times, distances
+and halt counts are representative, not lifted from the current official
+timetable — Bangladesh Railway publishes no machine-readable feed, and the
+open-data portal's intercity dataset is a PDF last updated in 2017. They exist
+to give the Risk Agent's model realistic inputs. Verify against the official
+timetable before treating any figure here as authoritative.
+
 ## The Risk Agent's model
 
 A random forest over six features — weather, current delay, route distance,

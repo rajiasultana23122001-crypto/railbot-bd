@@ -19,6 +19,11 @@ class Train(models.Model):
     distance_km = models.IntegerField(default=200)
     scheduled_halts = models.IntegerField(default=8)
 
+    # The stations this service calls at, in order. Stored here rather than as
+    # its own table because nothing queries an individual stop - the frontend
+    # wants the whole list at once, to draw the route on the map.
+    route = models.JSONField(default=list, blank=True)
+
     def __str__(self):
         return f"{self.name} #{self.number}"
 
@@ -165,6 +170,8 @@ class Arrival(models.Model):
             "expected": self.expected,
             "platform": self.platform,
             "status": self.status,
+            # Sent so the map can trace this service without a second request.
+            "route": self.train.route,
         }
 
 
