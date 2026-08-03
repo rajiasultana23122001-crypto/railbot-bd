@@ -24,6 +24,35 @@ class Train(models.Model):
     # wants the whole list at once, to draw the route on the map.
     route = models.JSONField(default=list, blank=True)
 
+    # Class codes this train sells, e.g. ["AC_B", "AC_S", "SNIGDHA", ...].
+    # Fares are not stored - they are the per-km rate in SEAT_CLASSES times
+    # this train's own distance_km, so a fare never has to be kept in sync by
+    # hand.
+    seat_classes = models.JSONField(default=list, blank=True)
+
+    def to_dict(self):
+        """Full route and fare info, for the passenger-facing train browser."""
+        from core.data.network import SEAT_CLASSES
+
+        return {
+            "name": self.name,
+            "number": self.number,
+            "origin": self.origin,
+            "destination": self.destination,
+            "distanceKm": self.distance_km,
+            "scheduledHalts": self.scheduled_halts,
+            "route": self.route,
+            "seatClasses": [
+                {
+                    "code": code,
+                    "label": SEAT_CLASSES[code]["label"],
+                    "fare": round(SEAT_CLASSES[code]["taka_per_km"] * self.distance_km),
+                }
+                for code in self.seat_classes
+                if code in SEAT_CLASSES
+            ],
+        }
+
     def __str__(self):
         return f"{self.name} #{self.number}"
 

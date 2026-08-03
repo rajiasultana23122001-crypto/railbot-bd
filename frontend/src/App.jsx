@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
 import PassengerDashboard from './pages/PassengerDashboard'
 import StationMasterPanel from './pages/StationMasterPanel'
+import TrainInfo from './pages/TrainInfo'
 import './App.css'
 
 /**
@@ -24,6 +25,7 @@ function App() {
             <Route path="/" element={<Navigate to="/passenger" replace />} />
             <Route path="/passenger" element={<PassengerDashboard />} />
             <Route path="/station-master" element={<StationMasterPanel />} />
+            <Route path="/trains" element={<TrainInfo />} />
           </Routes>
         </main>
       </div>

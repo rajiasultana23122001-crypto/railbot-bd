@@ -72,6 +72,43 @@ CORRIDORS = [
     ["Feni", "Noakhali"],
 ]
 
+# Seat classes Bangladesh Railway sells on intercity services, with an
+# indicative fare rate (taka per km) used to price a route once its distance
+# is known. Ordered priciest first, which is also the order the frontend
+# lists them in.
+SEAT_CLASSES = {
+    "AC_B": {"label": "AC Berth", "taka_per_km": 2.60},
+    "AC_S": {"label": "AC Seat", "taka_per_km": 1.80},
+    "SNIGDHA": {"label": "Snigdha", "taka_per_km": 1.45},
+    "F_BERTH": {"label": "F-Berth", "taka_per_km": 1.90},
+    "F_SEAT": {"label": "F-Seat", "taka_per_km": 1.05},
+    "F_CHAIR": {"label": "F-Chair", "taka_per_km": 1.10},
+    "S_CHAIR": {"label": "S-Chair", "taka_per_km": 0.75},
+    "SHOVAN": {"label": "Shovan", "taka_per_km": 0.60},
+    "SHULOV": {"label": "Shulov", "taka_per_km": 0.40},
+}
+
+# Sonar Bangla Express is the network's one all-AC service.
+_PREMIUM_AC_TRAINS = {"787", "788"}
+
+# These run without any AC classes, First class taking the place AC normally
+# would on the Dhaka - Chattogram/Sylhet trunk routes.
+_NO_AC_TRAINS = {"737", "750", "797", "727", "761", "731", "733", "715"}
+
+_PREMIUM_AC_CLASSES = ["AC_B", "AC_S", "SNIGDHA"]
+_NO_AC_CLASSES = ["F_BERTH", "F_SEAT", "F_CHAIR", "S_CHAIR", "SHOVAN", "SHULOV"]
+_STANDARD_CLASSES = ["AC_B", "AC_S", "SNIGDHA", "S_CHAIR", "SHOVAN", "SHULOV"]
+
+
+def seat_classes_for(number):
+    """Which seat class codes a train sells, by its train number."""
+    if number in _PREMIUM_AC_TRAINS:
+        return _PREMIUM_AC_CLASSES
+    if number in _NO_AC_TRAINS:
+        return _NO_AC_CLASSES
+    return _STANDARD_CLASSES
+
+
 # name, number, route (station list), distance km, scheduled halts
 TRAINS = [
     # ---- Dhaka - Chattogram ----

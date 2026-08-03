@@ -41,6 +41,8 @@
   border-radius: 10px;
   background: transparent;
   color: var(--rail-ink);
+  text-decoration: none;
+  cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 

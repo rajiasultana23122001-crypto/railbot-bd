@@ -13,6 +13,7 @@ urlpatterns = [
     path("journeys", views.journeys),
     path("station/<str:code>", views.station),
     path("trains", views.trains),
+    path("train-info", views.train_info),
     path("agent-logs", views.agent_logs),
     path("delays", views.report_delay),
     path("agents/run", views.run_agents),

@@ -50,6 +50,14 @@ export function fetchTrains() {
 }
 
 /**
+ * Every train in the network with its route and seat class fares, for the
+ * passenger-facing train browser.
+ */
+export function fetchTrainInfo() {
+  return request('/api/train-info')
+}
+
+/**
  * Ask the backend to run one Observe - Reason - Act cycle across all five
  * agents. Resolves with a summary of what each agent did.
  */

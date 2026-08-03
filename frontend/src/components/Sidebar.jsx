@@ -1,3 +1,5 @@
+import { NavLink } from 'react-router-dom'
+
 import {
   IconCalendar,
   IconChart,
@@ -12,16 +14,16 @@ import {
 /**
  * The narrow rail down the left edge.
  *
- * Only the first item navigates for now; the rest stand for sections the
- * project has not built yet, so they are marked disabled rather than pretending
- * to work.
+ * Only items with a `to` navigate; the rest stand for sections the project
+ * has not built yet, so they are marked disabled rather than pretending to
+ * work.
  */
 const items = [
-  { key: 'home', label: 'Overview', Icon: IconHome, active: true },
-  { key: 'board', label: 'Boards', Icon: IconGrid },
-  { key: 'people', label: 'Passengers', Icon: IconUsers },
+  { key: 'home', label: 'Overview', Icon: IconHome },
+  { key: 'board', label: 'Boards', Icon: IconGrid, to: '/station-master' },
+  { key: 'people', label: 'Passengers', Icon: IconUsers, to: '/passenger' },
   { key: 'reports', label: 'Reports', Icon: IconChart },
-  { key: 'timetable', label: 'Timetable', Icon: IconCalendar },
+  { key: 'timetable', label: 'Timetable', Icon: IconCalendar, to: '/trains' },
   { key: 'settings', label: 'Settings', Icon: IconSettings },
 ]
 
@@ -33,19 +35,32 @@ function Sidebar() {
       </button>
 
       <nav className="rail-nav">
-        {items.map(({ key, label, Icon, active }) => (
-          <button
-            key={key}
-            type="button"
-            className={`rail-btn ${active ? 'is-active' : ''}`}
-            aria-label={label}
-            aria-current={active ? 'page' : undefined}
-            disabled={!active}
-            title={active ? label : `${label} — not built yet`}
-          >
-            <Icon />
-          </button>
-        ))}
+        {items.map(({ key, label, Icon, to }) =>
+          to ? (
+            <NavLink
+              key={key}
+              to={to}
+              className={({ isActive }) =>
+                `rail-btn ${isActive ? 'is-active' : ''}`
+              }
+              aria-label={label}
+              title={label}
+            >
+              <Icon />
+            </NavLink>
+          ) : (
+            <button
+              key={key}
+              type="button"
+              className="rail-btn"
+              aria-label={label}
+              disabled
+              title={`${label} — not built yet`}
+            >
+              <Icon />
+            </button>
+          ),
+        )}
       </nav>
 
       <button

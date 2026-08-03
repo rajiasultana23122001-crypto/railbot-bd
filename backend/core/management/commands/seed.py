@@ -10,6 +10,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from core.data.network import TRAINS as NETWORK_TRAINS
+from core.data.network import seat_classes_for
 from core.models import (
     AgentLog,
     Arrival,
@@ -125,6 +126,7 @@ class Command(BaseCommand):
                 distance_km=distance,
                 scheduled_halts=halts,
                 route=route,
+                seat_classes=seat_classes_for(number),
             )
 
         passenger = Passenger.objects.create(

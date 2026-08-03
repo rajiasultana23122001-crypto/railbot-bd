@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 
 from .agents import run_cycle
 from .agents.scheduler_agent import add_minutes
-from .models import AgentLog, Arrival, Booking, Platform, Station
+from .models import AgentLog, Arrival, Booking, Platform, Station, Train
 
 
 @require_http_methods(["GET"])
@@ -85,6 +85,13 @@ def trains(request):
             ]
         }
     )
+
+
+@require_http_methods(["GET"])
+def train_info(request):
+    """Every train in the network, for passengers browsing routes and fares."""
+    all_trains = Train.objects.order_by("number")
+    return JsonResponse({"trains": [t.to_dict() for t in all_trains]})
 
 
 @require_http_methods(["GET"])
