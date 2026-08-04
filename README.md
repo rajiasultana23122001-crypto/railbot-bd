@@ -91,6 +91,7 @@ The dashboards are then served at `http://localhost:5173`.
 | `GET /api/journeys` | Booked journeys for the Passenger Dashboard |
 | `GET /api/station/<code>` | Platforms, arrivals and agent alerts for one station |
 | `GET /api/trains` | Trains a delay can be reported against |
+| `GET /api/train-info` | Every train in the network, with route and seat class fares |
 | `GET /api/agent-logs` | The full audit trail, newest first |
 | `POST /api/delays` | Report a train as late, then run a cycle |
 | `POST /api/agents/run` | Runs one cycle across all five agents |
@@ -155,12 +156,22 @@ On held-out data it scores **0.76 accuracy** and **0.80 ROC AUC**, against a
 0.66 baseline from always predicting "on time". A journey is flagged once its
 predicted delay probability reaches 0.60.
 
+## Screens
+
+| Route | What it is |
+|---|---|
+| `/passenger` | Passenger Dashboard — booked journeys and their delay status |
+| `/station-master` | Station Master Panel — crowding, inbound trains, agent log, network map |
+| `/trains` | Trains & Routes — every service in the network with its route and fares |
+
+The left rail navigates between them.
+
 ## Status
 
-Working end to end: both dashboards read live data from the Django API, and all
-five agents run against the database with the Risk Agent driven by a trained
-model. Voice calls are simulated — `place_call()` in the Manager Agent is the
-single function Twilio slots into.
+Working end to end: all three screens read live data from the Django API, and
+all five agents run against the database with the Risk Agent driven by a
+trained model. Voice calls are simulated — `place_call()` in the Manager Agent
+is the single function Twilio slots into.
 
 ## Team
 
