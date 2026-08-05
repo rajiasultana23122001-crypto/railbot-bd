@@ -1,54 +1,56 @@
 /* ==========================================================================
    RailBot BD — global styles
 
-   One visual world across both screens: warm paper, deep green, gold. Every
-   component reads these token names, so a colour is changed in one place.
+   Dark control-room / HUD theme. One visual world across both screens: deep
+   navy-black, amber for anything the operator should look at first, flat
+   surfaces, thin borders, monospace everywhere. Every component reads these
+   token names, so a colour is changed in one place.
    ========================================================================== */
 
 :root {
-  --radius: 12px;
-  --radius-sm: 8px;
+  --radius: 3px;
+  --radius-sm: 2px;
 
-  --font-body: "Segoe UI", system-ui, -apple-system, sans-serif;
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-mono: Consolas, "Courier New", monospace;
+  --font-body: "JetBrains Mono", "Space Mono", ui-monospace, "Courier New", monospace;
+  --font-display: "JetBrains Mono", "Space Mono", ui-monospace, monospace;
+  --font-mono: "JetBrains Mono", "Space Mono", ui-monospace, monospace;
 
   /* Surfaces */
-  --page: #f2efe6;
-  --page-2: #e9e5d9;
-  --card: #fffefb;
-  --border: #ddd7c7;
-  --border-soft: #e8e3d6;
+  --page: #0a0e17;
+  --page-2: #0d1117;
+  --card: #111922;
+  --border: #1e2d3d;
+  --border-soft: #1a2332;
 
-  /* Brand */
-  --brand: #14432c;
-  --brand-2: #1e5c3c;
-  --gold: #c08c2e;
-  --gold-soft: #f0e4c8;
+  /* Brand / accent */
+  --brand: #f5a623;
+  --brand-2: #e8a530;
+  --gold: #f5a623;
+  --gold-soft: rgba(245, 166, 35, 0.14);
 
   /* Text */
-  --ink: #1b2a22;
-  --ink-soft: #5b6b61;
-  --ink-faint: #8d9b92;
+  --ink: #dce4ec;
+  --ink-soft: #6b7b8d;
+  --ink-faint: #4d5c6d;
 
   /* Status */
-  --ok: #2f6f4f;
-  --ok-soft: #e0eee4;
-  --warn: #a8721c;
-  --warn-soft: #f7ecd5;
-  --late: #a8402c;
-  --late-soft: #f7e3de;
+  --ok: #00e676;
+  --ok-soft: rgba(0, 230, 118, 0.12);
+  --warn: #f5a623;
+  --warn-soft: rgba(245, 166, 35, 0.14);
+  --late: #ff4444;
+  --late-soft: rgba(255, 68, 68, 0.13);
 
   /* Left rail and top bar */
-  --rail-bg: #123a27;
-  --rail-ink: #9dbdaa;
-  --rail-ink-active: #f0e4c8;
-  --rail-active: rgba(192, 140, 46, 0.22);
-  --bar-bg: #14432c;
-  --bar-ink: #ffffff;
-  --bar-ink-soft: #a9c6b5;
+  --rail-bg: #0d1117;
+  --rail-ink: #6b7b8d;
+  --rail-ink-active: #f5a623;
+  --rail-active: rgba(245, 166, 35, 0.14);
+  --bar-bg: #0d1117;
+  --bar-ink: #dce4ec;
+  --bar-ink-soft: #6b7b8d;
 
-  --shadow: 0 1px 2px rgba(20, 40, 30, 0.05), 0 8px 20px -14px rgba(20, 40, 30, 0.3);
+  --shadow: none;
 
   font-family: var(--font-body);
   line-height: 1.55;
@@ -63,6 +65,53 @@ body {
   margin: 0;
   min-height: 100vh;
   background: var(--page);
+  position: relative;
+}
+
+/* Thin repeating scan lines across the whole page, very low opacity — reads
+   as a CRT/HUD surface rather than a flat colour. Fixed so it doesn't scroll
+   away from the content sitting on top of it. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.025) 0px,
+    rgba(255, 255, 255, 0.025) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* A faint grid behind the scan lines, so empty surfaces still read as an
+   instrument panel rather than blank space. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgba(30, 45, 61, 0.35) 0px,
+      transparent 1px,
+      transparent 48px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(30, 45, 61, 0.35) 0px,
+      transparent 1px,
+      transparent 48px
+    );
+}
+
+#root {
+  position: relative;
+  z-index: 1;
 }
 
 h1,
@@ -91,9 +140,79 @@ svg {
   flex-shrink: 0;
 }
 
+table {
+  font-variant-numeric: tabular-nums;
+}
+
 :focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
+}
+
+/* ---------------- Corner brackets ----------------
+   [ ] style bracket marks at the corners of a HUD panel. Add the class
+   "bracketed" to any positioned element to get all four. */
+.bracketed {
+  position: relative;
+}
+
+.bracketed::before,
+.bracketed::after,
+.bracketed .bracket-tl,
+.bracketed .bracket-br {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.bracketed::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--gold);
+  border-left: 2px solid var(--gold);
+}
+
+.bracketed::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--gold);
+  border-right: 2px solid var(--gold);
+}
+
+/* ---------------- Blinking cursor (clock) ---------------- */
+@keyframes blink-cursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.blink-cursor {
+  animation: blink-cursor 1s step-start infinite;
+}
+
+/* ---------------- Slow pulse (status dot) ---------------- */
+@keyframes slow-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.5);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 6px 2px rgba(0, 230, 118, 0.35);
+  }
+}
+
+.pulse-dot {
+  animation: slow-pulse 2.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

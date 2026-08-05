@@ -14,6 +14,7 @@
 
 .rail {
   background: var(--rail-bg);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -22,6 +23,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  z-index: 2;
 }
 
 .rail-nav {
@@ -37,27 +39,30 @@
   height: 40px;
   display: grid;
   place-items: center;
-  border: 0;
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--rail-ink);
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .rail-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(245, 166, 35, 0.08);
+  border-color: var(--border);
   color: var(--rail-ink-active);
 }
 
 .rail-btn.is-active {
   background: var(--rail-active);
+  border-color: var(--gold);
   color: var(--rail-ink-active);
+  box-shadow: 0 0 8px rgba(245, 166, 35, 0.25);
 }
 
 .rail-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
@@ -70,22 +75,29 @@
 .navbar {
   background: var(--bar-bg);
   color: var(--bar-ink);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 12px clamp(16px, 3vw, 32px);
-  min-height: 64px;
+  padding: 0 clamp(16px, 3vw, 32px);
+  min-height: 56px;
   flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 3;
 }
 
 .navbar-brand {
   display: flex;
   align-items: center;
   gap: 11px;
-  font-size: 19px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: -0.2px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 14px 0;
 }
 
 .navbar-mark {
@@ -95,9 +107,8 @@
 
 .navbar-mark span {
   width: 3px;
-  height: 17px;
+  height: 15px;
   background: var(--gold);
-  border-radius: 1px;
 }
 
 .navbar-brand em {
@@ -105,30 +116,64 @@
   color: var(--gold);
 }
 
-.navbar-links {
+.navbar-sep {
+  color: var(--ink-faint);
+}
+
+/* ---------------- Live stats + clock ---------------- */
+
+.navbar-stats {
   display: flex;
-  gap: 6px;
   align-items: center;
+  gap: 22px;
+  padding: 10px 0;
+  font-variant-numeric: tabular-nums;
 }
 
-.navbar-links a {
-  padding: 9px 16px;
-  border-radius: 8px;
-  font-size: 14.5px;
-  color: var(--bar-ink-soft);
-  transition: background 0.15s, color 0.15s;
+.navbar-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  line-height: 1;
 }
 
-.navbar-links a:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--bar-ink);
+.navbar-stat-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
-/* react-router adds .active to the link matching the current URL. */
-.navbar-links a.active {
-  background: var(--gold-soft);
-  color: var(--gold);
-  font-weight: 600;
+.navbar-stat-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.navbar-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  line-height: 1;
+  padding-left: 22px;
+  border-left: 1px solid var(--border);
+}
+
+.navbar-clock-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.navbar-clock-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 /* ---------------- Page canvas ---------------- */
@@ -146,6 +191,24 @@
   position: relative;
 }
 
+/* Faint "RAILWAY CONTROL SYSTEM" hero watermark sitting behind every page.
+   Fixed to the viewport so it reads as part of the room, not the page. */
+.app-main::before {
+  content: "RAILWAY CONTROL SYSTEM";
+  position: fixed;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(48px, 9vw, 148px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  opacity: 0.055;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 0;
+}
+
 /* The route drawing sits behind the passenger heading. */
 .route-map {
   position: absolute;
@@ -154,7 +217,7 @@
   width: min(46%, 520px);
   height: auto;
   color: var(--ink-faint);
-  opacity: 0.4;
+  opacity: 0.55;
   pointer-events: none;
   z-index: 0;
 }
@@ -172,9 +235,9 @@
 }
 
 .page-eyebrow {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--gold);
   margin-bottom: 7px;
@@ -182,16 +245,17 @@
 
 .page-title {
   font-family: var(--font-display);
-  font-size: clamp(26px, 3.4vw, 34px);
+  font-size: clamp(22px, 3vw, 30px);
   font-weight: 700;
-  color: var(--brand);
-  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink);
 }
 
 .page-subtitle {
   margin-top: 9px;
   color: var(--ink-soft);
-  font-size: 14.5px;
+  font-size: 13.5px;
   max-width: 58ch;
 }
 
@@ -209,7 +273,42 @@
   font-size: 14.5px;
 }
 
+/* ---------------- Network status indicator ---------------- */
+
+.network-status {
+  position: fixed;
+  left: 16px;
+  bottom: 14px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ok);
+}
+
+.network-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+  flex-shrink: 0;
+}
+
 /* ---------------- Narrow screens ---------------- */
+
+@media (max-width: 900px) {
+  .navbar-stats {
+    display: none;
+  }
+}
 
 @media (max-width: 640px) {
   .app {
@@ -222,6 +321,10 @@
   }
 
   .route-map {
+    display: none;
+  }
+
+  .app-main::before {
     display: none;
   }
 }

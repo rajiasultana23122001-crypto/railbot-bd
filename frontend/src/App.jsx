@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import Navbar from './components/Navbar'
+import NetworkStatus from './components/NetworkStatus'
 import Sidebar from './components/Sidebar'
 import PassengerDashboard from './pages/PassengerDashboard'
 import StationMasterPanel from './pages/StationMasterPanel'
@@ -29,6 +30,8 @@ function App() {
           </Routes>
         </main>
       </div>
+
+      <NetworkStatus />
     </div>
   )
 }
