@@ -130,3 +130,26 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+# --- Autonomous agent cycle -------------------------------------------
+# Minutes between automatic Observe -> Reason -> Act passes across the
+# five agents. See core/scheduler.py for the job that reads this.
+AGENT_CYCLE_MINUTES = 5
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'core.scheduler': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
