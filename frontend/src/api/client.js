@@ -7,9 +7,26 @@
  */
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
+const MANAGER_TOKEN_KEY = 'railbot_manager_token'
+
+/** The signed-in Station Manager's bearer token, or null if none. */
+export function getManagerToken() {
+  return localStorage.getItem(MANAGER_TOKEN_KEY)
+}
+
+export function setManagerToken(token) {
+  localStorage.setItem(MANAGER_TOKEN_KEY, token)
+}
+
+export function clearManagerToken() {
+  localStorage.removeItem(MANAGER_TOKEN_KEY)
+}
+
 /**
  * Fetch a path from the API and return the parsed JSON.
  * Throws with a readable message so the dashboards can show what went wrong.
+ * The thrown error also carries `.status`, so a 401 can be told apart from
+ * any other failure without parsing the message text.
  */
 async function request(path, options) {
   let response
@@ -31,18 +48,44 @@ async function request(path, options) {
       .then((body) => body.error)
       .catch(() => null)
 
-    throw new Error(detail ?? `API responded with ${response.status} for ${path}`)
+    const err = new Error(
+      detail ?? `API responded with ${response.status} for ${path}`,
+    )
+    err.status = response.status
+    throw err
   }
 
   return response.json()
+}
+
+/** Adds the Station Manager's bearer token to a request's headers, if signed in. */
+function withManagerAuth(options = {}) {
+  const token = getManagerToken()
+  if (!token) return options
+  return {
+    ...options,
+    headers: { ...options.headers, Authorization: `Bearer ${token}` },
+  }
 }
 
 export function fetchJourneys() {
   return request('/api/journeys')
 }
 
+/** Station-manager-only: needs a signed-in manager's bearer token. */
 export function fetchStation(code) {
-  return request(`/api/station/${code}`)
+  return request(`/api/station/${code}`, withManagerAuth())
+}
+
+/** Station Manager sign-in. Stores the token on success. */
+export async function loginManager({ username, password }) {
+  const data = await request('/api/auth/manager/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  })
+  setManagerToken(data.token)
+  return data
 }
 
 export function fetchTrains() {
@@ -62,7 +105,7 @@ export function fetchTrainInfo() {
  * agents. Resolves with a summary of what each agent did.
  */
 export function runAgentCycle() {
-  return request('/api/agents/run', { method: 'POST' })
+  return request('/api/agents/run', withManagerAuth({ method: 'POST' }))
 }
 
 /**
@@ -70,9 +113,12 @@ export function runAgentCycle() {
  * a full agent cycle, so the response describes everything that followed.
  */
 export function reportDelay({ trainNo, minutes }) {
-  return request('/api/delays', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ trainNo, minutes }),
-  })
+  return request(
+    '/api/delays',
+    withManagerAuth({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trainNo, minutes }),
+    }),
+  )
 }

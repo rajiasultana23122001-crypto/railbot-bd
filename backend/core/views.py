@@ -13,6 +13,7 @@ from django.views.decorators.http import require_http_methods
 
 from .agents import run_cycle
 from .agents.scheduler_agent import add_minutes
+from .auth import station_manager_required
 from .models import AgentLog, Arrival, Booking, Platform, Station, Train
 
 
@@ -40,12 +41,14 @@ def journeys(request):
     )
 
 
+@station_manager_required
 @require_http_methods(["GET"])
 def station(request, code):
     """Everything the Station Master Panel shows for one station.
 
     Platforms, arrivals and logs come back together so the meters can never
-    disagree with the alerts printed beside them.
+    disagree with the alerts printed beside them. Station-manager-only: this
+    is the operator's board, not something a passenger's session can reach.
     """
     try:
         found = Station.objects.get(code=code.upper())
@@ -104,12 +107,14 @@ def agent_logs(request):
 # csrf_exempt because this API is called by the React dev server, not by a
 # Django-rendered form carrying a CSRF token.
 @csrf_exempt
+@station_manager_required
 @require_http_methods(["POST"])
 def report_delay(request):
     """Report a train as running late, then let the agents respond.
 
     This is the operator-facing entry point: a station master enters what has
-    happened, and the agents work out what to do about it.
+    happened, and the agents work out what to do about it. Station-manager-
+    only, same reasoning as `station` above.
     """
     try:
         payload = json.loads(request.body or b"{}")
@@ -182,12 +187,14 @@ def report_delay(request):
 
 
 @csrf_exempt
+@station_manager_required
 @require_http_methods(["POST"])
 def run_agents(request):
     """Run one Observe - Reason - Act cycle across all five agents.
 
     Returns what each agent did, so the dashboard can show the cycle happening
-    rather than only its after-effects.
+    rather than only its after-effects. Station-manager-only: triggering a
+    cycle on demand is an operator action, not a passenger one.
     """
     try:
         results = run_cycle()

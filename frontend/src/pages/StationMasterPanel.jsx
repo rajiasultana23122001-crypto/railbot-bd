@@ -1,12 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import BangladeshMap from '../components/BangladeshMap'
 import CapacityMeter, { crowdLevel } from '../components/CapacityMeter'
 import DelayForm from '../components/DelayForm'
+import ManagerLogin from '../components/ManagerLogin'
 import Sparkline from '../components/Sparkline'
 import StatusBadge from '../components/StatusBadge'
 import { ErrorMessage, Loading } from '../components/Feedback'
-import { fetchStation, reportDelay, runAgentCycle } from '../api/client'
+import {
+  clearManagerToken,
+  fetchStation,
+  getManagerToken,
+  reportDelay,
+  runAgentCycle,
+} from '../api/client'
 import { useApi } from '../api/useApi'
 import './Dashboard.css'
 
@@ -65,7 +72,14 @@ function summarise(result) {
  * the right: the two things staff act on stay visible while they type.
  */
 function StationMasterPanel() {
-  const { data, loading, error, reload } = useApi(() => fetchStation(STATION_CODE))
+  // Gates the whole panel: station() is a manager-only endpoint, so there is
+  // nothing to fetch until a manager has signed in.
+  const [signedIn, setSignedIn] = useState(() => Boolean(getManagerToken()))
+
+  const { data, loading, error, errorStatus, reload } = useApi(
+    () => fetchStation(STATION_CODE),
+    { enabled: signedIn },
+  )
 
   const [cycle, setCycle] = useState(null)
   const [running, setRunning] = useState(false)
@@ -73,6 +87,19 @@ function StationMasterPanel() {
 
   // Which inbound train's route is traced on the map. Null means none.
   const [selectedTrain, setSelectedTrain] = useState(null)
+
+  /** A token that stopped working (expired, rotated by a login elsewhere). */
+  function handleAuthFailure() {
+    clearManagerToken()
+    setSignedIn(false)
+  }
+
+  // A token that looked valid at mount can still be rejected on first fetch
+  // — it may have been rotated by a login elsewhere. Same fix either way:
+  // drop back to the sign-in screen rather than show a raw 401.
+  useEffect(() => {
+    if (errorStatus === 401) handleAuthFailure()
+  }, [errorStatus])
 
   /** Shared by both entry points: run something, then refresh this page. */
   async function runAndRefresh(action) {
@@ -84,7 +111,11 @@ function StationMasterPanel() {
       // The agents have just changed the data this page is showing.
       await reload()
     } catch (err) {
-      setCycleError(err.message)
+      if (err.status === 401) {
+        handleAuthFailure()
+      } else {
+        setCycleError(err.message)
+      }
     } finally {
       setRunning(false)
     }
@@ -102,6 +133,15 @@ function StationMasterPanel() {
     </div>
   )
 
+  if (!signedIn) {
+    return (
+      <>
+        {heading('Station Master Panel')}
+        <ManagerLogin onSuccess={() => setSignedIn(true)} />
+      </>
+    )
+  }
+
   if (loading) {
     return (
       <>
@@ -109,6 +149,13 @@ function StationMasterPanel() {
         <Loading what="station data" />
       </>
     )
+  }
+
+  // On a 401 the effect above clears the token and flips signedIn back to
+  // false on the next render; render nothing for this one frame rather than
+  // flash the raw error message.
+  if (errorStatus === 401) {
+    return null
   }
 
   if (error) {

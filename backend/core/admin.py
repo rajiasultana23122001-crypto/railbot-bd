@@ -6,7 +6,16 @@ agent log, becomes browsable at /admin without writing a single screen.
 
 from django.contrib import admin
 
-from .models import AgentLog, Arrival, Booking, Passenger, Platform, Station, Train
+from .models import (
+    AgentLog,
+    Arrival,
+    Booking,
+    Passenger,
+    Platform,
+    Station,
+    StationManager,
+    Train,
+)
 
 
 @admin.register(Train)
@@ -17,7 +26,29 @@ class TrainAdmin(admin.ModelAdmin):
 
 @admin.register(Passenger)
 class PassengerAdmin(admin.ModelAdmin):
-    list_display = ("name", "phone")
+    list_display = (
+        "name",
+        "phone",
+        "nid_number",
+        "nid_verified",
+        "is_phone_verified",
+    )
+    list_filter = ("nid_verified", "is_phone_verified")
+    # auth_token is a bearer credential - visible for debugging, not editable
+    # by hand from here.
+    readonly_fields = ("auth_token",)
+
+
+@admin.register(StationManager)
+class StationManagerAdmin(admin.ModelAdmin):
+    """Read-only here by design - accounts are created via
+    `manage.py create_manager`, not typed into the admin."""
+
+    list_display = ("username", "created_at")
+    readonly_fields = ("username", "password_hash", "auth_token", "created_at")
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(Booking)

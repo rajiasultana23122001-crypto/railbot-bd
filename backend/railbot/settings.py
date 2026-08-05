@@ -12,8 +12,16 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Twilio credentials (voice calls and OTP verification) live in a local .env,
+# never committed - see .env.example for the variables it needs and the
+# one-time Twilio Console setup. Loaded here, read via os.environ.get()
+# wherever a Twilio call is made.
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production

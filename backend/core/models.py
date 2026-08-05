@@ -58,13 +58,48 @@ class Train(models.Model):
 
 
 class Passenger(models.Model):
-    """Someone who books a seat. Phone is what the Manager Agent calls."""
+    """Someone who books a seat. Phone is what the Manager Agent calls.
+
+    Auth fields added for Phase 3: an account is phone + NID, activated once
+    the phone is OTP-confirmed through Twilio Verify. nid_verified is a
+    separate flag a Station Manager sets by hand after checking the physical
+    card - nothing here ever checks the NID against a government database.
+    """
 
     name = models.CharField(max_length=80)
-    phone = models.CharField(max_length=20)
+    phone = models.CharField(max_length=20, unique=True)
+
+    # Null rather than blank-string so existing/seeded passengers with no NID
+    # on file don't collide with each other under the unique constraint.
+    nid_number = models.CharField(max_length=17, unique=True, null=True, blank=True)
+    nid_verified = models.BooleanField(default=False)
+    is_phone_verified = models.BooleanField(default=False)
+
+    # Bearer token issued once the phone is verified (signup) or on every
+    # subsequent OTP login. Rotated each time, so an old token stops working
+    # the moment a new login succeeds.
+    auth_token = models.CharField(max_length=64, unique=True, null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+
+class StationManager(models.Model):
+    """A station operator's login.
+
+    Not self-service: an account only exists because someone ran
+    `manage.py create_manager`, never through a public endpoint. Password is
+    hashed with Django's own hasher (the same one django.contrib.auth uses),
+    even though this model doesn't subclass Django's User.
+    """
+
+    username = models.CharField(max_length=50, unique=True)
+    password_hash = models.CharField(max_length=128)
+    auth_token = models.CharField(max_length=64, unique=True, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.username
 
 
 class Booking(models.Model):
