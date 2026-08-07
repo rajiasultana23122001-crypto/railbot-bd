@@ -12,6 +12,7 @@ click==8.4.2
 colorama==0.4.6
 django-cors-headers==4.9.0
 Django==6.0.7
+djangorestframework==3.17.2
 frozenlist==1.8.0
 idna==3.18
 Jinja2==3.1.6

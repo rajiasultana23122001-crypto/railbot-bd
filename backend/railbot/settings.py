@@ -47,6 +47,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'corsheaders',
+    # Only the Token model is used (see core/auth.py) - views stay plain
+    # Django, not DRF viewsets, so nothing else from the framework is wired
+    # in.
+    'rest_framework',
+    'rest_framework.authtoken',
     'core',
 ]
 

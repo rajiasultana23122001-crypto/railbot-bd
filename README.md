@@ -27,11 +27,11 @@ Every agent follows the same **Observe → Reason → Act** cycle.
 
 ## Tech Stack
 
-- **Frontend:** React.js — Passenger Dashboard and Station Master Control Panel
-- **Backend:** Django (Python REST API)
+- **Frontend:** React.js — Passenger Dashboard, Station Master Control Panel, Timetable
+- **Backend:** Django (Python REST API), token auth via `rest_framework.authtoken`
 - **Database:** SQLite (development) / PostgreSQL (production)
 - **Agents & AI:** Python decision-loop classes, scikit-learn, Google Gemini API
-- **External APIs:** Twilio (voice calls), OpenWeatherMap (weather data)
+- **External APIs:** Twilio (voice calls, OTP verification), OpenWeatherMap (weather data)
 
 ## Project Structure
 
@@ -40,9 +40,11 @@ railbot-bd/
 ├── frontend/          React app (Passenger + Station Master dashboards)
 └── backend/
     ├── railbot/       Django project — settings and root URLs
-    ├── core/          Django app — models, views, and the five agents
-    │   ├── models.py      7 tables, including the agent_logs audit trail
-    │   ├── views.py       the API endpoints
+    ├── core/          Django app — models, views, auth, and the five agents
+    │   ├── models.py      including Profile (role) and AuthorityID
+    │   ├── views.py       the data API endpoints, role-gated
+    │   ├── auth.py        bearer-token check + role decorators
+    │   ├── auth_views.py  signup/login endpoints
     │   ├── agents/        BaseAgent plus the five agents
     │   └── management/    seed and run_agents commands
     └── ml/            dataset generator, trainer, and the saved model
@@ -58,6 +60,7 @@ Requires Node.js 20+ and Python 3.11+. Run the two servers in separate terminals
 cd backend
 python -m venv venv
 venv\Scripts\pip install -r requirements.txt
+copy .env.example .env
 venv\Scripts\python ml\generate_dataset.py
 venv\Scripts\python ml\train_model.py
 venv\Scripts\python manage.py migrate
@@ -66,8 +69,16 @@ venv\Scripts\python manage.py runserver
 ```
 
 The API then answers on `http://localhost:8000`. `manage.py seed` clears and
-reloads the sample data, so it is safe to re-run at any time. The two `ml`
+reloads the sample data (and loads a handful of test Authority IDs — see
+Authentication below), so it is safe to re-run at any time. The two `ml`
 scripts build the Risk Agent's model and only need running once.
+
+`.env` holds the Twilio credentials — see `.env.example` for what each one
+does and the one-time Twilio Console setup. Leave it unfilled for local dev:
+both the Manager Agent's calls and the passenger OTP fall back to a simulated
+mode with no real Twilio account needed (see Authentication below). No JWT
+secret or similar is needed — auth uses DRF's Token model, which generates
+its own random key per user rather than signing anything with a shared secret.
 
 Django's admin is available at `http://localhost:8000/admin` once a superuser
 exists (`manage.py createsuperuser`) — useful for browsing the agent log during
@@ -85,16 +96,59 @@ The dashboards are then served at `http://localhost:5173`.
 
 ## API
 
-| Endpoint | Returns |
-|---|---|
-| `GET /api/health` | Service check |
-| `GET /api/journeys` | Booked journeys for the Passenger Dashboard |
-| `GET /api/station/<code>` | Platforms, arrivals and agent alerts for one station |
-| `GET /api/trains` | Trains a delay can be reported against |
-| `GET /api/train-info` | Every train in the network, with route and seat class fares |
-| `GET /api/agent-logs` | The full audit trail, newest first |
-| `POST /api/delays` | Report a train as late, then run a cycle |
-| `POST /api/agents/run` | Runs one cycle across all five agents |
+Every endpoint below except `health` and the six under Authentication
+requires `Authorization: Bearer <token>` — see Authentication for how a
+token is issued. "Role" is who the endpoint answers for; a request from the
+other role gets `403`, no token gets `401`.
+
+| Endpoint | Role | Returns |
+|---|---|---|
+| `GET /api/health` | — (public) | Service check |
+| `GET /api/journeys` | Passenger | Booked journeys for the Passenger Dashboard |
+| `GET /api/train-info` | Either | Every train in the network — the Timetable |
+| `GET /api/station/<code>` | Authority | Platforms, arrivals and agent alerts for one station |
+| `GET /api/trains` | Authority | Trains a delay can be reported against |
+| `GET /api/agent-logs` | Authority | The full audit trail, newest first |
+| `POST /api/delays` | Authority | Report a train as late, then run a cycle |
+| `POST /api/agents/run` | Authority | Runs one cycle across all five agents |
+
+## Authentication
+
+Two roles, **Passenger** and **Authority**, each with their own signup and a
+login shared by both.
+
+| Endpoint | Method | Body |
+|---|---|---|
+| `/api/auth/passenger/signup` | POST | `phone_number`, `nid_number`, `password` |
+| `/api/auth/passenger/verify-signup` | POST | `phone_number`, `code` |
+| `/api/auth/authority/signup` | POST | `phone_number`, `authority_id`, `password` |
+| `/api/auth/login` | POST | `phone_number`, `password` (either role) |
+
+**Passenger signup** takes an NID (10-digit old format or 17-digit new
+format, digits only) and a phone number, both unique per account. The phone
+is then OTP-confirmed through Twilio Verify — `verify-signup` with the code
+activates the account. Login is refused until that happens. NID uniqueness
+is checked, but the NID itself is never verified against a government
+database — `nid_verified`-style manual checking is a future addition, not
+something this system can do.
+
+**Authority signup** takes a phone number and a BD Railway-issued Authority
+ID that must already exist in the `AuthorityID` table — nothing here
+generates or accepts an arbitrary ID, and each one can be claimed once. No
+OTP step: the ID itself is the proof of authorization, so the account is
+active immediately. `manage.py seed` loads five example IDs
+(`BR-AUTH-1001` through `BR-AUTH-1005`) to test signup against; pick any
+unclaimed one.
+
+**Login** is phone + password for both roles — the response carries which
+role the account is, so the frontend doesn't have to ask. Wrong password and
+unknown phone number return the same error message on purpose, so a login
+attempt can't be used to check which phone numbers have accounts.
+
+Tokens come from `rest_framework.authtoken`'s `Token` model — a random key
+per user, rotated (old one invalidated) on every successful login. Checked
+by a plain decorator (`core/auth.py`), not DRF's own view layer — nothing
+else in this project runs as a DRF view.
 
 ## How the agents work
 
@@ -158,13 +212,20 @@ predicted delay probability reaches 0.60.
 
 ## Screens
 
-| Route | What it is |
-|---|---|
-| `/passenger` | Passenger Dashboard — booked journeys and their delay status |
-| `/station-master` | Station Master Panel — crowding, inbound trains, agent log, network map |
-| `/trains` | Trains & Routes — every service in the network with its route and fares |
+| Route | Role | What it is |
+|---|---|---|
+| `/auth` | — | Role picker: Passenger or Authority |
+| `/auth/passenger` | — | Passenger sign up / sign in |
+| `/auth/authority` | — | Authority sign up / sign in |
+| `/passenger` | Passenger | Passenger Dashboard — booked journeys and their delay status |
+| `/station-master` | Authority | Station Master Panel — crowding, inbound trains, agent log, network map |
+| `/trains` | Either | Trains & Routes (Timetable) — every service in the network with its route and fares |
 
-The left rail navigates between them.
+The left rail navigates between the three role-gated screens, filtered to
+whichever the signed-in role can actually reach. Typing a URL for the other
+role's screen redirects back to your own home rather than showing it -
+enforced again on the backend (see API above), since a frontend redirect
+alone is not access control.
 
 ## Status
 

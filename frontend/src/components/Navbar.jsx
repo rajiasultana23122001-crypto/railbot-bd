@@ -1,4 +1,5 @@
 import Clock from './Clock'
+import { getPhoneNumber, getRole } from '../api/client'
 import { useLiveStats } from '../api/useLiveStats'
 
 /**
@@ -10,6 +11,8 @@ import { useLiveStats } from '../api/useLiveStats'
  */
 function Navbar() {
   const { stationCount, trainCount, onTimePercent } = useLiveStats()
+  const role = getRole()
+  const phoneNumber = getPhoneNumber()
 
   return (
     <header className="navbar">
@@ -40,6 +43,15 @@ function Navbar() {
             {onTimePercent === null ? '—' : `${onTimePercent}%`}
           </span>
         </div>
+
+        {role && (
+          <div className="navbar-stat">
+            <span className="navbar-stat-label">Signed In As</span>
+            <span className="navbar-stat-value navbar-role">
+              {phoneNumber} · {role}
+            </span>
+          </div>
+        )}
 
         <Clock />
       </div>

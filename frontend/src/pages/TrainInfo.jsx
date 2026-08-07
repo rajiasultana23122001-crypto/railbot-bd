@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { ErrorMessage, Loading } from '../components/Feedback'
 import { IconTrain } from '../components/icons'
 import { fetchTrainInfo } from '../api/client'
-import { useApi } from '../api/useApi'
+import { useApi, useAuthRedirectOnFailure } from '../api/useApi'
 import './Dashboard.css'
 
 /**
@@ -14,7 +14,8 @@ import './Dashboard.css'
  * a passenger is as likely to look up "Sylhet" as "Parabat".
  */
 function TrainInfo() {
-  const { data, loading, error } = useApi(fetchTrainInfo)
+  const { data, loading, error, errorStatus } = useApi(fetchTrainInfo)
+  useAuthRedirectOnFailure(errorStatus)
   const [query, setQuery] = useState('')
 
   const trains = useMemo(() => {
@@ -47,6 +48,12 @@ function TrainInfo() {
         <Loading what="the train list" />
       </>
     )
+  }
+
+  // On a 401/403 useAuthRedirectOnFailure logs out and redirects to /auth;
+  // render nothing for this one frame rather than flash the raw error.
+  if (errorStatus === 401 || errorStatus === 403) {
+    return null
   }
 
   if (error) {

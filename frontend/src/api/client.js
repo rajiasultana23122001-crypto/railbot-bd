@@ -7,26 +7,42 @@
  */
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
-const MANAGER_TOKEN_KEY = 'railbot_manager_token'
+const TOKEN_KEY = 'railbot_token'
+const ROLE_KEY = 'railbot_role'
+const PHONE_KEY = 'railbot_phone'
 
-/** The signed-in Station Manager's bearer token, or null if none. */
-export function getManagerToken() {
-  return localStorage.getItem(MANAGER_TOKEN_KEY)
+export const ROLE_PASSENGER = 'passenger'
+export const ROLE_AUTHORITY = 'authority'
+
+export function getAuthToken() {
+  return localStorage.getItem(TOKEN_KEY)
 }
 
-export function setManagerToken(token) {
-  localStorage.setItem(MANAGER_TOKEN_KEY, token)
+export function getRole() {
+  return localStorage.getItem(ROLE_KEY)
 }
 
-export function clearManagerToken() {
-  localStorage.removeItem(MANAGER_TOKEN_KEY)
+export function getPhoneNumber() {
+  return localStorage.getItem(PHONE_KEY)
+}
+
+function setAuth({ token, role, phoneNumber }) {
+  localStorage.setItem(TOKEN_KEY, token)
+  localStorage.setItem(ROLE_KEY, role)
+  localStorage.setItem(PHONE_KEY, phoneNumber)
+}
+
+export function clearAuth() {
+  localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(ROLE_KEY)
+  localStorage.removeItem(PHONE_KEY)
 }
 
 /**
  * Fetch a path from the API and return the parsed JSON.
  * Throws with a readable message so the dashboards can show what went wrong.
- * The thrown error also carries `.status`, so a 401 can be told apart from
- * any other failure without parsing the message text.
+ * The thrown error also carries `.status`, so a 401/403 can be told apart
+ * from any other failure without parsing the message text.
  */
 async function request(path, options) {
   let response
@@ -58,9 +74,9 @@ async function request(path, options) {
   return response.json()
 }
 
-/** Adds the Station Manager's bearer token to a request's headers, if signed in. */
-function withManagerAuth(options = {}) {
-  const token = getManagerToken()
+/** Adds the signed-in user's bearer token to a request's headers, if any. */
+function withAuth(options = {}) {
+  const token = getAuthToken()
   if (!token) return options
   return {
     ...options,
@@ -68,54 +84,95 @@ function withManagerAuth(options = {}) {
   }
 }
 
-export function fetchJourneys() {
-  return request('/api/journeys')
-}
-
-/** Station-manager-only: needs a signed-in manager's bearer token. */
-export function fetchStation(code) {
-  return request(`/api/station/${code}`, withManagerAuth())
-}
-
-/** Station Manager sign-in. Stores the token on success. */
-export async function loginManager({ username, password }) {
-  const data = await request('/api/auth/manager/login', {
+function postJSON(path, body) {
+  return request(path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify(body),
   })
-  setManagerToken(data.token)
+}
+
+// ---------------- Auth ----------------
+
+export function signupPassenger({ phoneNumber, nidNumber, password }) {
+  return postJSON('/api/auth/passenger/signup', {
+    phone_number: phoneNumber,
+    nid_number: nidNumber,
+    password,
+  })
+}
+
+export function verifyPassengerSignup({ phoneNumber, code }) {
+  return postJSON('/api/auth/passenger/verify-signup', {
+    phone_number: phoneNumber,
+    code,
+  })
+}
+
+export function signupAuthority({ phoneNumber, authorityId, password }) {
+  return postJSON('/api/auth/authority/signup', {
+    phone_number: phoneNumber,
+    authority_id: authorityId,
+    password,
+  })
+}
+
+/** Shared login for both roles. Stores the token and role on success. */
+export async function login({ phoneNumber, password }) {
+  const data = await postJSON('/api/auth/login', {
+    phone_number: phoneNumber,
+    password,
+  })
+  setAuth({ token: data.token, role: data.role, phoneNumber: data.phoneNumber })
   return data
 }
 
+export function logout() {
+  clearAuth()
+}
+
+// ---------------- Data ----------------
+
+/** Passenger-only. */
+export function fetchJourneys() {
+  return request('/api/journeys', withAuth())
+}
+
+/** Authority-only. */
+export function fetchStation(code) {
+  return request(`/api/station/${code}`, withAuth())
+}
+
+/** Authority-only. */
 export function fetchTrains() {
-  return request('/api/trains')
+  return request('/api/trains', withAuth())
 }
 
 /**
- * Every train in the network with its route and seat class fares, for the
- * passenger-facing train browser.
+ * Every train in the network with its route and seat class fares - the
+ * Timetable, open to either signed-in role.
  */
 export function fetchTrainInfo() {
-  return request('/api/train-info')
+  return request('/api/train-info', withAuth())
 }
 
 /**
  * Ask the backend to run one Observe - Reason - Act cycle across all five
- * agents. Resolves with a summary of what each agent did.
+ * agents. Resolves with a summary of what each agent did. Authority-only.
  */
 export function runAgentCycle() {
-  return request('/api/agents/run', withManagerAuth({ method: 'POST' }))
+  return request('/api/agents/run', withAuth({ method: 'POST' }))
 }
 
 /**
  * Report a train as running late. The backend applies the delay and then runs
  * a full agent cycle, so the response describes everything that followed.
+ * Authority-only.
  */
 export function reportDelay({ trainNo, minutes }) {
   return request(
     '/api/delays',
-    withManagerAuth({
+    withAuth({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trainNo, minutes }),

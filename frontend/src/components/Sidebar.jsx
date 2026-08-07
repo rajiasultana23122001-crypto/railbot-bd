@@ -1,5 +1,6 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 
+import { getRole, logout, ROLE_AUTHORITY, ROLE_PASSENGER } from '../api/client'
 import {
   IconCalendar,
   IconChart,
@@ -16,18 +17,43 @@ import {
  *
  * Only items with a `to` navigate; the rest stand for sections the project
  * has not built yet, so they are marked disabled rather than pretending to
- * work.
+ * work. Board and Passengers are further filtered by role - a passenger
+ * never even sees a link to the Station Control Board, and vice versa. This
+ * is the frontend half of "hide inaccessible routes"; RouteGuard is the half
+ * that still blocks a direct URL either way.
  */
 const items = [
   { key: 'home', label: 'Overview', Icon: IconHome },
-  { key: 'board', label: 'Boards', Icon: IconGrid, to: '/station-master' },
-  { key: 'people', label: 'Passengers', Icon: IconUsers, to: '/passenger' },
+  {
+    key: 'board',
+    label: 'Boards',
+    Icon: IconGrid,
+    to: '/station-master',
+    role: ROLE_AUTHORITY,
+  },
+  {
+    key: 'people',
+    label: 'Passengers',
+    Icon: IconUsers,
+    to: '/passenger',
+    role: ROLE_PASSENGER,
+  },
   { key: 'reports', label: 'Reports', Icon: IconChart },
   { key: 'timetable', label: 'Timetable', Icon: IconCalendar, to: '/trains' },
   { key: 'settings', label: 'Settings', Icon: IconSettings },
 ]
 
 function Sidebar() {
+  const navigate = useNavigate()
+  const role = getRole()
+
+  const visibleItems = items.filter((item) => !item.role || item.role === role)
+
+  function handleSignOut() {
+    logout()
+    navigate('/auth', { replace: true })
+  }
+
   return (
     <aside className="rail" aria-label="Sections">
       <button type="button" className="rail-btn rail-menu" aria-label="Menu">
@@ -35,7 +61,7 @@ function Sidebar() {
       </button>
 
       <nav className="rail-nav">
-        {items.map(({ key, label, Icon, to }) =>
+        {visibleItems.map(({ key, label, Icon, to }) =>
           to ? (
             <NavLink
               key={key}
@@ -67,8 +93,9 @@ function Sidebar() {
         type="button"
         className="rail-btn rail-out"
         aria-label="Sign out"
-        disabled
-        title="Sign out — not built yet"
+        title="Sign out"
+        onClick={handleSignOut}
+        disabled={!role}
       >
         <IconLogout />
       </button>

@@ -3,7 +3,7 @@ import RouteMap from '../components/RouteMap'
 import { ErrorMessage, Loading } from '../components/Feedback'
 import { IconAlert, IconBell, IconClock, IconTrain } from '../components/icons'
 import { fetchJourneys } from '../api/client'
-import { useApi } from '../api/useApi'
+import { useApi, useAuthRedirectOnFailure } from '../api/useApi'
 import './Dashboard.css'
 
 /**
@@ -13,7 +13,8 @@ import './Dashboard.css'
  * response rather than stored separately, so they cannot drift out of step.
  */
 function PassengerDashboard() {
-  const { data, loading, error } = useApi(fetchJourneys)
+  const { data, loading, error, errorStatus } = useApi(fetchJourneys)
+  useAuthRedirectOnFailure(errorStatus)
 
   const header = (
     <>
@@ -36,6 +37,12 @@ function PassengerDashboard() {
         <Loading what="your journeys" />
       </>
     )
+  }
+
+  // On a 401/403 useAuthRedirectOnFailure logs out and redirects to /auth;
+  // render nothing for this one frame rather than flash the raw error.
+  if (errorStatus === 401 || errorStatus === 403) {
+    return null
   }
 
   if (error) {

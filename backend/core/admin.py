@@ -9,11 +9,12 @@ from django.contrib import admin
 from .models import (
     AgentLog,
     Arrival,
+    AuthorityID,
     Booking,
     Passenger,
     Platform,
+    Profile,
     Station,
-    StationManager,
     Train,
 )
 
@@ -26,29 +27,29 @@ class TrainAdmin(admin.ModelAdmin):
 
 @admin.register(Passenger)
 class PassengerAdmin(admin.ModelAdmin):
+    list_display = ("name", "phone")
+
+
+@admin.register(AuthorityID)
+class AuthorityIDAdmin(admin.ModelAdmin):
+    """Pre-load valid codes here before anyone signs up with them."""
+
+    list_display = ("code", "note", "is_claimed", "created_at")
+    search_fields = ("code",)
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
     list_display = (
-        "name",
-        "phone",
+        "phone_number",
+        "role",
+        "user",
         "nid_number",
-        "nid_verified",
         "is_phone_verified",
+        "authority_id",
     )
-    list_filter = ("nid_verified", "is_phone_verified")
-    # auth_token is a bearer credential - visible for debugging, not editable
-    # by hand from here.
-    readonly_fields = ("auth_token",)
-
-
-@admin.register(StationManager)
-class StationManagerAdmin(admin.ModelAdmin):
-    """Read-only here by design - accounts are created via
-    `manage.py create_manager`, not typed into the admin."""
-
-    list_display = ("username", "created_at")
-    readonly_fields = ("username", "password_hash", "auth_token", "created_at")
-
-    def has_add_permission(self, request):
-        return False
+    list_filter = ("role", "is_phone_verified")
+    search_fields = ("phone_number", "nid_number")
 
 
 @admin.register(Booking)

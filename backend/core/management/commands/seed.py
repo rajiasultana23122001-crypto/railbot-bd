@@ -14,12 +14,24 @@ from core.data.network import seat_classes_for
 from core.models import (
     AgentLog,
     Arrival,
+    AuthorityID,
     Booking,
     Passenger,
     Platform,
     Station,
     Train,
 )
+
+# Example BD Railway-issued Authority IDs, pre-loaded so authority signup has
+# something real to validate against during a demo. See README for how to
+# use one.
+AUTHORITY_IDS = [
+    ("BR-AUTH-1001", "Dhaka HQ - test batch"),
+    ("BR-AUTH-1002", "Dhaka HQ - test batch"),
+    ("BR-AUTH-1003", "Chattogram division - test batch"),
+    ("BR-AUTH-1004", "Sylhet division - test batch"),
+    ("BR-AUTH-1005", "Rajshahi division - test batch"),
+]
 
 BOOKINGS = [
     # train number, date, scheduled, expected, platform, coach, status, delay, note
@@ -114,6 +126,12 @@ class Command(BaseCommand):
         for model in (AgentLog, Arrival, Platform, Booking, Station, Passenger, Train):
             model.objects.all().delete()
 
+        # Reference data, not sample data to churn: get-or-create rather than
+        # wipe-and-recreate, so re-running seed doesn't touch (or, worse,
+        # PROTECT-block on) an AuthorityID an authority has already claimed.
+        for code, note in AUTHORITY_IDS:
+            AuthorityID.objects.get_or_create(code=code, defaults={"note": note})
+
         # Origin and destination are the ends of the route, so the two can
         # never disagree with the stations the train actually calls at.
         trains = {}
@@ -190,3 +208,4 @@ class Command(BaseCommand):
         self.stdout.write(f"  platforms  {Platform.objects.count()}")
         self.stdout.write(f"  arrivals   {Arrival.objects.count()}")
         self.stdout.write(f"  agent logs {AgentLog.objects.count()}")
+        self.stdout.write(f"  authority IDs available {AuthorityID.objects.filter(claimed_by__isnull=True).count()}")

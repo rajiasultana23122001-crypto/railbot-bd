@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { logout } from './client'
 
 /**
  * Runs an API call when the component mounts and reports its progress.
@@ -61,4 +64,24 @@ export function useApi(loader, { enabled = true } = {}) {
   }, [load, enabled])
 
   return { data, loading, error, errorStatus, reload: load }
+}
+
+/**
+ * Signs out and sends the browser to the role picker the moment a fetch
+ * comes back 401/403 - a token that stopped working (expired, rotated by a
+ * sign-in elsewhere) or a role check that failed. RouteGuard keeps the wrong
+ * role from loading the page in the first place; this covers a token going
+ * bad mid-session, after the guard already let the page through.
+ *
+ * @param {number | null} errorStatus from useApi
+ */
+export function useAuthRedirectOnFailure(errorStatus) {
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (errorStatus === 401 || errorStatus === 403) {
+      logout()
+      navigate('/auth', { replace: true })
+    }
+  }, [errorStatus, navigate])
 }

@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 
 from .agents import run_cycle
 from .agents.scheduler_agent import add_minutes
-from .auth import station_manager_required
+from .auth import any_role_required, authority_required, passenger_required
 from .models import AgentLog, Arrival, Booking, Platform, Station, Train
 
 
@@ -23,9 +23,15 @@ def health(request):
     return JsonResponse({"status": "ok", "service": "railbot-bd"})
 
 
+@passenger_required
 @require_http_methods(["GET"])
 def journeys(request):
-    """Every booked journey, for the Passenger Dashboard."""
+    """Every booked journey, for the Passenger Dashboard. Passenger-only.
+
+    Returns every booking in the system, not only the signed-in passenger's
+    own - Profile.passenger exists for that link but nothing wires it up to
+    this endpoint yet, so scoping by identity is a follow-up, not done here.
+    """
     bookings = Booking.objects.select_related("train", "passenger").all()
 
     # A journey carries an agent note exactly when an agent has already acted
@@ -41,14 +47,14 @@ def journeys(request):
     )
 
 
-@station_manager_required
+@authority_required
 @require_http_methods(["GET"])
 def station(request, code):
     """Everything the Station Master Panel shows for one station.
 
     Platforms, arrivals and logs come back together so the meters can never
-    disagree with the alerts printed beside them. Station-manager-only: this
-    is the operator's board, not something a passenger's session can reach.
+    disagree with the alerts printed beside them. Authority-only: this is
+    the operator's board, not something a passenger's session can reach.
     """
     try:
         found = Station.objects.get(code=code.upper())
@@ -70,9 +76,13 @@ def station(request, code):
     )
 
 
+@authority_required
 @require_http_methods(["GET"])
 def trains(request):
-    """Trains a delay can be reported against - those someone has booked."""
+    """Trains a delay can be reported against - those someone has booked.
+
+    Authority-only: this feeds the Report a Delay picker, an operator tool.
+    """
     bookings = Booking.objects.select_related("train").all()
     return JsonResponse(
         {
@@ -90,16 +100,22 @@ def trains(request):
     )
 
 
+@any_role_required
 @require_http_methods(["GET"])
 def train_info(request):
-    """Every train in the network, for passengers browsing routes and fares."""
+    """Every train in the network - the Timetable, open to either role."""
     all_trains = Train.objects.order_by("number")
     return JsonResponse({"trains": [t.to_dict() for t in all_trains]})
 
 
+@authority_required
 @require_http_methods(["GET"])
 def agent_logs(request):
-    """The full audit trail, newest first - read by the Advisor Agent."""
+    """The full audit trail, newest first - read by the Advisor Agent.
+
+    Authority-only: this is the same audit trail the Station Master Panel's
+    agent log already surfaces, not passenger-facing data.
+    """
     logs = AgentLog.objects.order_by("-id")
     return JsonResponse({"logs": [log.to_dict() for log in logs]})
 
@@ -107,14 +123,14 @@ def agent_logs(request):
 # csrf_exempt because this API is called by the React dev server, not by a
 # Django-rendered form carrying a CSRF token.
 @csrf_exempt
-@station_manager_required
+@authority_required
 @require_http_methods(["POST"])
 def report_delay(request):
     """Report a train as running late, then let the agents respond.
 
     This is the operator-facing entry point: a station master enters what has
-    happened, and the agents work out what to do about it. Station-manager-
-    only, same reasoning as `station` above.
+    happened, and the agents work out what to do about it. Authority-only,
+    same reasoning as `station` above.
     """
     try:
         payload = json.loads(request.body or b"{}")
@@ -187,14 +203,14 @@ def report_delay(request):
 
 
 @csrf_exempt
-@station_manager_required
+@authority_required
 @require_http_methods(["POST"])
 def run_agents(request):
     """Run one Observe - Reason - Act cycle across all five agents.
 
     Returns what each agent did, so the dashboard can show the cycle happening
-    rather than only its after-effects. Station-manager-only: triggering a
-    cycle on demand is an operator action, not a passenger one.
+    rather than only its after-effects. Authority-only: triggering a cycle on
+    demand is an operator action, not a passenger one.
     """
     try:
         results = run_cycle()
