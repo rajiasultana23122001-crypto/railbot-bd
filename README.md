@@ -31,7 +31,7 @@ Every agent follows the same **Observe → Reason → Act** cycle.
 - **Backend:** Django (Python REST API), token auth via `rest_framework.authtoken`
 - **Database:** SQLite (development) / PostgreSQL (production)
 - **Agents & AI:** Python decision-loop classes, scikit-learn, Google Gemini API
-- **External APIs:** Twilio (voice calls, OTP verification), OpenWeatherMap (weather data)
+- **External APIs:** sms.net.bd (delay notices), Twilio Verify (OTP verification), OpenWeatherMap (weather data)
 
 ## Project Structure
 
@@ -73,12 +73,13 @@ reloads the sample data (and loads a handful of test Authority IDs — see
 Authentication below), so it is safe to re-run at any time. The two `ml`
 scripts build the Risk Agent's model and only need running once.
 
-`.env` holds the Twilio credentials — see `.env.example` for what each one
-does and the one-time Twilio Console setup. Leave it unfilled for local dev:
-both the Manager Agent's calls and the passenger OTP fall back to a simulated
-mode with no real Twilio account needed (see Authentication below). No JWT
-secret or similar is needed — auth uses DRF's Token model, which generates
-its own random key per user rather than signing anything with a shared secret.
+`.env` holds the Twilio and sms.net.bd credentials — see `.env.example` for
+what each one does and the one-time Twilio Console setup. Leave it unfilled
+for local dev: both the Manager Agent's SMS and the passenger OTP fall back
+to a simulated mode with no real account needed for either (see
+Authentication below). No JWT secret or similar is needed — auth uses DRF's
+Token model, which generates its own random key per user rather than
+signing anything with a shared secret.
 
 Django's admin is available at `http://localhost:8000/admin` once a superuser
 exists (`manage.py createsuperuser`) — useful for browsing the agent log during
@@ -231,8 +232,9 @@ alone is not access control.
 
 Working end to end: all three screens read live data from the Django API, and
 all five agents run against the database with the Risk Agent driven by a
-trained model. Voice calls are simulated — `place_call()` in the Manager Agent
-is the single function Twilio slots into.
+trained model. Delay notices go out as SMS through sms.net.bd — simulated
+when `SMS_NET_BD_API_KEY` isn't set, real once it is. `send_sms()` in the
+Manager Agent is the one function that call goes through.
 
 ## Team
 
