@@ -2,7 +2,7 @@ import JourneyCard from '../components/JourneyCard'
 import RouteMap from '../components/RouteMap'
 import { ErrorMessage, Loading } from '../components/Feedback'
 import { IconAlert, IconBell, IconClock, IconTrain } from '../components/icons'
-import { fetchJourneys } from '../api/client'
+import { fetchJourneys, getPhoneNumber } from '../api/client'
 import { useApi, useAuthRedirectOnFailure } from '../api/useApi'
 import './Dashboard.css'
 
@@ -89,9 +89,19 @@ function PassengerDashboard() {
       </section>
 
       <section className="journey-list">
-        {journeys.map((journey) => (
-          <JourneyCard journey={journey} key={journey.id} />
-        ))}
+        {journeys.length === 0 ? (
+          // The API returns only this account's bookings, so an empty list
+          // means nothing is booked against this number - worth saying, or it
+          // reads as a page that failed to load.
+          <p className="placeholder">
+            Nothing is booked against {getPhoneNumber() || 'this number'} yet.
+            A booking made against it will appear here on its own.
+          </p>
+        ) : (
+          journeys.map((journey) => (
+            <JourneyCard journey={journey} key={journey.id} />
+          ))
+        )}
       </section>
     </>
   )

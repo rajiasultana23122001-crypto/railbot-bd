@@ -26,13 +26,14 @@ def health(request):
 @passenger_required
 @require_http_methods(["GET"])
 def journeys(request):
-    """Every booked journey, for the Passenger Dashboard. Passenger-only.
+    """The signed-in passenger's own journeys, for the Passenger Dashboard.
 
-    Returns every booking in the system, not only the signed-in passenger's
-    own - Profile.passenger exists for that link but nothing wires it up to
-    this endpoint yet, so scoping by identity is a follow-up, not done here.
+    Scoped by who is asking, not merely by role: holding a valid passenger
+    token proves you are *a* passenger, which is not a reason to read every
+    other passenger's travel plans. Profile decides which bookings are this
+    account's - see Profile.own_bookings.
     """
-    bookings = Booking.objects.select_related("train", "passenger").all()
+    bookings = request.profile.own_bookings().select_related("train", "passenger")
 
     # A journey carries an agent note exactly when an agent has already acted
     # on it - a call placed, or a risk flagged. That is what the passenger

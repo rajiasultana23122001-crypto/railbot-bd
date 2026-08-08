@@ -20,7 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from rest_framework.authtoken.models import Token
 
-from .models import AuthorityID, Profile
+from .models import AuthorityID, Passenger, Profile
 from .services.twilio_verify import check_verification, start_verification
 
 # Accepts the 10-digit (old) or 17-digit (new) Bangladesh NID format, digits
@@ -83,6 +83,15 @@ def passenger_signup(request):
                 role=Profile.ROLE_PASSENGER,
                 phone_number=phone,
                 nid_number=nid,
+                # If a seat was already booked at the counter against this
+                # number, that record belongs to this account from the start.
+                # Only an unclaimed one: the link is one-to-one, so a record
+                # some other account already holds is left alone rather than
+                # taken. No match is normal - Profile.own_bookings falls back
+                # to matching on the phone number itself.
+                passenger=Passenger.objects.filter(
+                    phone=phone, profile__isnull=True
+                ).first(),
             )
     except IntegrityError:
         # Lost a race against another signup with the same phone or NID

@@ -150,6 +150,23 @@ class Profile(models.Model):
         related_name="claimed_by",
     )
 
+    def own_bookings(self):
+        """The bookings this account is entitled to see - and only those.
+
+        Prefer the Passenger a Station Authority linked by hand. Where that
+        link has not been made, fall back to the phone number: a seat is
+        booked at the counter against a number, so a Passenger row carrying
+        this account's number is this account's booking record. The fallback
+        matters because signup and booking happen in either order - an account
+        opened before its first booking still finds that booking afterwards,
+        with nobody having to go and set the link.
+
+        Returns a queryset, so callers can add their own select_related.
+        """
+        if self.passenger_id:
+            return Booking.objects.filter(passenger_id=self.passenger_id)
+        return Booking.objects.filter(passenger__phone=self.phone_number)
+
     def __str__(self):
         return f"{self.phone_number} ({self.role})"
 

@@ -105,7 +105,7 @@ other role gets `403`, no token gets `401`.
 | Endpoint | Role | Returns |
 |---|---|---|
 | `GET /api/health` | — (public) | Service check |
-| `GET /api/journeys` | Passenger | Booked journeys for the Passenger Dashboard |
+| `GET /api/journeys` | Passenger | The signed-in passenger's own booked journeys |
 | `GET /api/train-info` | Either | Every train in the network — the Timetable |
 | `GET /api/station/<code>` | Authority | Platforms, arrivals and agent alerts for one station |
 | `GET /api/trains` | Authority | Trains a delay can be reported against |
@@ -150,6 +150,39 @@ Tokens come from `rest_framework.authtoken`'s `Token` model — a random key
 per user, rotated (old one invalidated) on every successful login. Checked
 by a plain decorator (`core/auth.py`), not DRF's own view layer — nothing
 else in this project runs as a DRF view.
+
+### Who sees which bookings
+
+A passenger token proves you are *a* passenger. It is not a reason to read
+every other passenger's travel plans, so `/api/journeys` is scoped to the
+account asking for it (`Profile.own_bookings`):
+
+1. the `Passenger` record a Station Authority linked to the account, if one
+   was linked;
+2. otherwise any `Passenger` record carrying the account's phone number — a
+   seat is booked at the counter against a number, so that number is the
+   link.
+
+Both directions work because bookings and signups happen in either order.
+Booking first, then signing up, claims the record at signup; signing up
+first and booking later is caught by the phone-number match. The authority
+endpoints are deliberately *not* scoped — an operator's board is supposed to
+show the whole station.
+
+### Demo logins
+
+`manage.py seed` creates two passenger accounts, both password
+`railbot123`, so signing in as each shows a different list — that is the
+scoping above, visible:
+
+| Phone | Sees |
+|---|---|
+| `+8801700000000` | 3 journeys — trains 701, 709 (delayed), 759 (at risk) |
+| `+8801800000000` | 2 journeys — trains 705, 725, both on time |
+
+Both are pre-verified, since there is no real handset behind either number
+to receive an OTP. They exist only in the demo database `seed` rebuilds on
+every run.
 
 ## How the agents work
 

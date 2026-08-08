@@ -6,6 +6,7 @@ Clears every table first, so it is safe to re-run whenever the sample data
 changes or a demo needs a clean slate.
 """
 
+from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -18,6 +19,7 @@ from core.models import (
     Booking,
     Passenger,
     Platform,
+    Profile,
     Station,
     Train,
 )
@@ -33,7 +35,16 @@ AUTHORITY_IDS = [
     ("BR-AUTH-1005", "Rajshahi division - test batch"),
 ]
 
-BOOKINGS = [
+# Two passengers, each with their own bookings and their own login, because
+# the Passenger Dashboard scopes what it returns to whoever is signed in
+# (Profile.own_bookings). One seeded passenger could not show that: signing in
+# as either of these two and seeing a different list is the demonstration.
+#
+# The password is shared and printed in the README - these are sample logins
+# for a demo database that `seed` wipes on every run, not credentials.
+DEMO_PASSWORD = "railbot123"
+
+ISTIAK_BOOKINGS = [
     # train number, date, scheduled, expected, platform, coach, status, delay, note
     ("701", "1 Aug 2026", "07:00", "07:00", "4", "SNIGDHA / C1-24", "on-time", 0, None),
     (
@@ -60,8 +71,17 @@ BOOKINGS = [
         "Risk Agent predicts a 20-25 minute delay from heavy rainfall forecast "
         "near Ishwardi. You will be called if the delay is confirmed.",
     ),
+]
+
+RAJIA_BOOKINGS = [
     ("705", "3 Aug 2026", "10:10", "10:10", "3", "SHOVAN / F1-45", "on-time", 0, None),
     ("725", "3 Aug 2026", "21:45", "21:45", "5", "AC_B / A1-12", "on-time", 0, None),
+]
+
+PASSENGERS = [
+    # name, phone, NID, their bookings
+    ("Istiak Ahammed Rumi", "+8801700000000", "1990123456789012", ISTIAK_BOOKINGS),
+    ("Rajia Sultana", "+8801800000000", "1995987654321098", RAJIA_BOOKINGS),
 ]
 
 PLATFORMS = [
@@ -147,26 +167,41 @@ class Command(BaseCommand):
                 seat_classes=seat_classes_for(number),
             )
 
-        passenger = Passenger.objects.create(
-            name="Istiak Ahammed Rumi", phone="+8801700000000"
-        )
+        for name, phone, nid, bookings in PASSENGERS:
+            passenger = Passenger.objects.create(name=name, phone=phone)
 
-        for number, date, sched, exp, plat, coach, status, delay, note in BOOKINGS:
-            Booking.objects.create(
-                train=trains[number],
+            # A sample login for this passenger. Removed and rebuilt on every
+            # run so the password above is always the one that works; deleting
+            # the User takes its Profile and auth token with it.
+            User.objects.filter(username=phone).delete()
+            user = User.objects.create_user(username=phone, password=DEMO_PASSWORD)
+            Profile.objects.create(
+                user=user,
+                role=Profile.ROLE_PASSENGER,
+                phone_number=phone,
+                nid_number=nid,
+                # Seeded accounts skip the OTP step: there is no real handset
+                # behind these numbers to send a code to.
+                is_phone_verified=True,
                 passenger=passenger,
-                travel_date=date,
-                scheduled_departure=sched,
-                expected_departure=exp,
-                platform=plat,
-                coach=coach,
-                status=status,
-                delay_minutes=delay,
-                agent_note=note,
-                # The passenger was told the delayed time; the Scheduler Agent
-                # has not yet had a chance to improve on it.
-                notified_departure=exp if status == "delayed" else None,
             )
+
+            for number, date, sched, exp, plat, coach, status, delay, note in bookings:
+                Booking.objects.create(
+                    train=trains[number],
+                    passenger=passenger,
+                    travel_date=date,
+                    scheduled_departure=sched,
+                    expected_departure=exp,
+                    platform=plat,
+                    coach=coach,
+                    status=status,
+                    delay_minutes=delay,
+                    agent_note=note,
+                    # The passenger was told the delayed time; the Scheduler
+                    # Agent has not yet had a chance to improve on it.
+                    notified_departure=exp if status == "delayed" else None,
+                )
 
         station = Station.objects.create(
             name="Dhaka (Kamalapur)",
