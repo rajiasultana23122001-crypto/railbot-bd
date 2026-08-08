@@ -1,10 +1,16 @@
 /* ==========================================================================
    RailBot BD — global styles
 
-   Dark control-room / HUD theme. One visual world across both screens: deep
-   navy-black, amber for anything the operator should look at first, flat
-   surfaces, thin borders, monospace everywhere. Every component reads these
-   token names, so a colour is changed in one place.
+   Control-room / HUD look: flat surfaces, thin borders, amber for anything the
+   operator should look at first, monospace everywhere. Every component reads
+   these token names, so a colour is changed in one place.
+
+   Two themes. Dark is the default and the one the design was drawn for; light
+   is for people who find a dark screen hard to read. Both keep the same
+   structure, spacing and accent — only the surfaces and ink swap.
+
+   The theme lives on <html data-theme="...">, set by index.html before React
+   mounts so the page never flashes the wrong one. See src/theme.js.
    ========================================================================== */
 
 :root {
@@ -52,9 +58,56 @@
 
   --shadow: none;
 
+  /* Surface texture: scan lines over a faint instrument grid. */
+  --scan-line: rgba(255, 255, 255, 0.025);
+  --grid-line: rgba(30, 45, 61, 0.35);
+
   font-family: var(--font-body);
   line-height: 1.55;
   color: var(--ink);
+}
+
+/* ---------------- Light theme ----------------
+   Same structure, lighter surfaces. The amber is darkened, because the shade
+   that reads as a warning light on near-black is barely legible on white; the
+   status colours are deepened for the same reason. The left rail and top bar
+   stay dark: they anchor the layout, and keeping them makes the two themes
+   read as one product rather than two. */
+:root[data-theme='light'] {
+  --page: #eceff4;
+  --page-2: #e2e7ee;
+  --card: #ffffff;
+  --border: #c4cdd9;
+  --border-soft: #d7dee7;
+
+  --brand: #a8650a;
+  --brand-2: #96590a;
+  --gold: #a8650a;
+  --gold-soft: rgba(168, 101, 10, 0.12);
+
+  --ink: #16202b;
+  --ink-soft: #55636f;
+  --ink-faint: #7b8895;
+
+  --ok: #0b7a43;
+  --ok-soft: rgba(11, 122, 67, 0.12);
+  --warn: #a8650a;
+  --warn-soft: rgba(168, 101, 10, 0.12);
+  --late: #bc2b2b;
+  --late-soft: rgba(188, 43, 43, 0.11);
+
+  --rail-bg: #16202b;
+  --rail-ink: #8b9aa9;
+  --rail-ink-active: #f5a623;
+  --rail-active: rgba(245, 166, 35, 0.18);
+  --bar-bg: #16202b;
+  --bar-ink: #e6ecf2;
+  --bar-ink-soft: #94a3b1;
+
+  --shadow: 0 1px 2px rgba(22, 32, 43, 0.05);
+
+  --scan-line: rgba(22, 32, 43, 0.016);
+  --grid-line: rgba(120, 136, 152, 0.22);
 }
 
 * {
@@ -79,8 +132,8 @@ body::before {
   pointer-events: none;
   background-image: repeating-linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 0.025) 0px,
-    rgba(255, 255, 255, 0.025) 1px,
+    var(--scan-line) 0px,
+    var(--scan-line) 1px,
     transparent 1px,
     transparent 3px
   );
@@ -97,13 +150,13 @@ body::after {
   background-image:
     repeating-linear-gradient(
       to right,
-      rgba(30, 45, 61, 0.35) 0px,
+      var(--grid-line) 0px,
       transparent 1px,
       transparent 48px
     ),
     repeating-linear-gradient(
       to bottom,
-      rgba(30, 45, 61, 0.35) 0px,
+      var(--grid-line) 0px,
       transparent 1px,
       transparent 48px
     );
@@ -180,6 +233,31 @@ table {
   right: -1px;
   border-bottom: 2px solid var(--gold);
   border-right: 2px solid var(--gold);
+}
+
+/* ---------------- Theme toggle ---------------- */
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--bar-ink-soft);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.theme-toggle:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* ---------------- Blinking cursor (clock) ---------------- */

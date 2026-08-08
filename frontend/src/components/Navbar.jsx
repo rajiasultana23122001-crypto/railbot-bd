@@ -1,4 +1,5 @@
 import Clock from './Clock'
+import ThemeToggle from './ThemeToggle'
 import { getPhoneNumber, getRole } from '../api/client'
 import { useLiveStats } from '../api/useLiveStats'
 
@@ -54,6 +55,7 @@ function Navbar() {
         )}
 
         <Clock />
+        <ThemeToggle />
       </div>
     </header>
   )

@@ -11,6 +11,25 @@
       rel="stylesheet"
     />
     <title>RailBot BD — Control System</title>
+    <script>
+      // Apply the saved theme before anything paints, so the page never
+      // flashes the wrong one. Falls back to the operating system's
+      // preference on a first visit, then to dark, which is what the
+      // interface was designed for.
+      (function () {
+        try {
+          var saved = localStorage.getItem('railbot-theme')
+          if (!saved) {
+            saved = window.matchMedia('(prefers-color-scheme: light)').matches
+              ? 'light'
+              : 'dark'
+          }
+          document.documentElement.setAttribute('data-theme', saved)
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
