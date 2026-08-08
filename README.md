@@ -261,6 +261,36 @@ role's screen redirects back to your own home rather than showing it -
 enforced again on the backend (see API above), since a frontend redirect
 alone is not access control.
 
+## Tests
+
+```
+cd backend
+venv\Scripts\python manage.py test
+```
+
+48 tests in `core/tests/`, grouped by what each one defends rather than by
+which module it touches:
+
+| File | Defends |
+|---|---|
+| `test_journeys.py` | A passenger sees their own bookings and nobody else's |
+| `test_auth.py` | Role separation, signup rules, token rotation |
+| `test_agents.py` | Observe-Reason-Act, and that a repeated cycle does not act twice |
+
+Most of these were written against bugs this project actually had. The
+Scheduler once sized its recovery budget against the *remaining* delay, so
+every cycle found more to trim and a 35-minute delay eventually vanished.
+The Manager checked only whether a passenger had been contacted, never
+whether the time it had given them was still true. The Resource Agent
+re-logged the same crowding alert every five minutes. Each has a test named
+after the behaviour it is holding in place, so none of them can come back
+without something turning red.
+
+The four tests covering the full five-agent cycle need `ml/risk_model.pkl`,
+which is a build product and not in version control. They skip rather than
+fail when it is missing, so a fresh clone runs green before
+`python ml/train_model.py` has been run.
+
 ## Status
 
 Working end to end: all three screens read live data from the Django API, and

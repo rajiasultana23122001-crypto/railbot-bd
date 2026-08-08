@@ -161,11 +161,18 @@ class Profile(models.Model):
         opened before its first booking still finds that booking afterwards,
         with nobody having to go and set the link.
 
+        The fallback deliberately ignores records another account already
+        holds. Matching on a number alone would otherwise hand over bookings
+        belonging to whoever holds that record, which is the exact thing this
+        method exists to prevent.
+
         Returns a queryset, so callers can add their own select_related.
         """
         if self.passenger_id:
             return Booking.objects.filter(passenger_id=self.passenger_id)
-        return Booking.objects.filter(passenger__phone=self.phone_number)
+        return Booking.objects.filter(
+            passenger__phone=self.phone_number, passenger__profile__isnull=True
+        )
 
     def __str__(self):
         return f"{self.phone_number} ({self.role})"

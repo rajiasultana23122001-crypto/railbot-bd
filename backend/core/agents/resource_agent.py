@@ -31,6 +31,10 @@ class ResourceAgent(BaseAgent):
         Only changes are worth announcing. A platform that was already reported
         critical and still is does not need saying twice; one that has eased off
         does, so the station master knows the staff can go back.
+
+        A platform nothing has ever been said about counts as clear, so a
+        quiet station does not open its log with an "eased off" line about
+        pressure that never existed.
         """
         decisions = []
         for reading in observation:
@@ -44,7 +48,7 @@ class ResourceAgent(BaseAgent):
             else:
                 level, staff = "clear", 0
 
-            if level == platform.last_alert_level:
+            if level == (platform.last_alert_level or "clear"):
                 continue
 
             decisions.append({**reading, "level": level, "staff": staff})
