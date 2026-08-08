@@ -73,13 +73,21 @@ reloads the sample data (and loads a handful of test Authority IDs — see
 Authentication below), so it is safe to re-run at any time. The two `ml`
 scripts build the Risk Agent's model and only need running once.
 
-`.env` holds the Twilio and sms.net.bd credentials — see `.env.example` for
-what each one does and the one-time Twilio Console setup. Leave it unfilled
-for local dev: both the Manager Agent's SMS and the passenger OTP fall back
-to a simulated mode with no real account needed for either (see
-Authentication below). No JWT secret or similar is needed — auth uses DRF's
-Token model, which generates its own random key per user rather than
-signing anything with a shared secret.
+`.env` holds the third-party credentials — see `.env.example` for what each
+one does and the one-time Twilio Console setup. Leave it unfilled for local
+dev; every one of them has a fallback, and nothing about the system's
+behaviour depends on which are present:
+
+| Variable | Without it |
+|---|---|
+| `SMS_NET_BD_API_KEY` | The Manager Agent's delay texts are simulated |
+| `TWILIO_*` (three) | Passenger OTP accepts `000000` |
+| `OPENWEATHER_API_KEY` | Route weather is generated, seeded per destination |
+| `GEMINI_API_KEY` | The Advisor Agent's briefing is written from a template |
+
+No JWT secret or similar is needed — auth uses DRF's Token model, which
+generates its own random key per user rather than signing anything with a
+shared secret.
 
 Django's admin is available at `http://localhost:8000/admin` once a superuser
 exists (`manage.py createsuperuser`) — useful for browsing the agent log during
@@ -205,6 +213,31 @@ change, so the sequence is part of the design.
 Agents never call each other. They communicate only through the database, so
 any one of them can be changed or removed without touching the rest.
 
+### Where the language model sits
+
+The Advisor Agent is the only one that uses Gemini, and it uses it for one
+thing: turning figures the other four already produced into two or three
+sentences of shift briefing for the station master.
+
+It decides nothing. Every recommendation in the log comes from a rule in
+`AdvisorAgent.reason()`, which runs identically whether or not a key is set,
+and no output of `core/services/gemini.py` is ever written back to a
+Booking, a Platform or a Train — it only becomes one line in the audit
+trail. The model is handed the figures and told not to invent trains,
+platforms, times or causes.
+
+That boundary is deliberate. A model that could re-platform a train or
+withdraw a delay notice would be a far worse failure than an awkward
+sentence, and `test_gemini.py` asserts it directly: the agent is run with a
+mocked Gemini reply that reads like an instruction, and every train,
+platform and booking is compared before and after.
+
+Without `GEMINI_API_KEY`, `_template_briefing()` writes the same paragraph
+from the same figures. Failures — a bad key, a timeout, a safety-blocked
+reply — fall back to it too, so a slow text-generation API can never take
+the control room down with it. The panel labels which one wrote the
+briefing rather than letting the fallback pass for the model.
+
 To run a cycle without the frontend: `venv\Scripts\python manage.py run_agents`
 
 Agents act on *change*: re-running a cycle when nothing has moved produces no
@@ -268,7 +301,7 @@ cd backend
 venv\Scripts\python manage.py test
 ```
 
-48 tests in `core/tests/`, grouped by what each one defends rather than by
+60 tests in `core/tests/`, grouped by what each one defends rather than by
 which module it touches:
 
 | File | Defends |
@@ -276,6 +309,7 @@ which module it touches:
 | `test_journeys.py` | A passenger sees their own bookings and nobody else's |
 | `test_auth.py` | Role separation, signup rules, token rotation |
 | `test_agents.py` | Observe-Reason-Act, and that a repeated cycle does not act twice |
+| `test_gemini.py` | The briefing works without a key, and the model decides nothing |
 
 Most of these were written against bugs this project actually had. The
 Scheduler once sized its recovery budget against the *remaining* delay, so
@@ -295,9 +329,15 @@ fail when it is missing, so a fresh clone runs green before
 
 Working end to end: all three screens read live data from the Django API, and
 all five agents run against the database with the Risk Agent driven by a
-trained model. Delay notices go out as SMS through sms.net.bd — simulated
-when `SMS_NET_BD_API_KEY` isn't set, real once it is. `send_sms()` in the
-Manager Agent is the one function that call goes through.
+trained model and the Advisor Agent's briefing written by Gemini.
+
+Four things reach outside the system, and each is reached through exactly
+one function so it can be found and swapped: `send_sms()` for delay texts,
+`twilio_verify` for passenger OTP, `current_weather()` for route conditions,
+and `write_briefing()` for the shift briefing. All four fall back when their
+key is absent, which is how the project runs locally and in tests. What
+falls back is the *outside call* — the agents' own decisions are made by the
+same rules either way.
 
 ## Team
 

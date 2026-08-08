@@ -25,6 +25,18 @@ function initials(agentName) {
   return agentName.slice(0, 2).toUpperCase()
 }
 
+/**
+ * The Advisor Agent's written briefing, if it produced one this cycle.
+ *
+ * Only appears when the cycle actually did something — a settled cycle has
+ * nothing to brief about, and says so by omitting it.
+ */
+function briefingFrom(results) {
+  const advisor = results.find((r) => r.agent === 'Advisor Agent')
+  if (!advisor?.briefing) return null
+  return { text: advisor.briefing, source: advisor.briefingSource }
+}
+
 /** Turn one agent's result into a single line for the summary strip. */
 function summarise(result) {
   switch (result.agent) {
@@ -236,6 +248,22 @@ function StationMasterPanel() {
               </li>
             ))}
           </ol>
+
+          {briefingFrom(cycle.results) && (
+            <p className="cycle-briefing">
+              <span className="cycle-briefing-label">
+                Shift briefing
+                {/* Say which wrote it. A fallback paragraph passing itself
+                    off as the model would be the wrong kind of quiet. */}
+                <em>
+                  {briefingFrom(cycle.results).source === 'gemini'
+                    ? 'Gemini'
+                    : 'no API key — written from the same figures'}
+                </em>
+              </span>
+              {briefingFrom(cycle.results).text}
+            </p>
+          )}
         </section>
       )}
 

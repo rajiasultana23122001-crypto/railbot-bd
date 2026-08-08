@@ -3,11 +3,18 @@
 The other four agents each handle one incident at a time. This one steps back
 over the whole log and reports what keeps recurring, which is where timetable
 changes come from rather than same-day firefighting.
+
+It is also the only agent that uses a language model, and it uses one for
+exactly one thing: turning figures the other four already produced into a
+readable shift briefing. The recommendations themselves come from the rules
+in reason() below, with or without a key - see core.services.gemini for why
+the model is kept away from operational decisions.
 """
 
 from collections import Counter
 
 from core.models import AgentLog, Booking, Platform
+from core.services.gemini import write_briefing
 
 from .base import BaseAgent
 
@@ -71,10 +78,25 @@ class AdvisorAgent(BaseAgent):
                 "capacity is the binding constraint today, not train availability."
             )
 
+        at_risk = sum(
+            1 for b in observation["bookings"] if b.status == "at-risk"
+        )
+
         return {
             "suggestions": suggestions,
             "byAgent": dict(by_agent),
             "totalDecisions": len(logs),
+            # Grounding for the written briefing in act(). Assembled here,
+            # in the step that is allowed to think, so act() only has to
+            # hand it over.
+            "facts": {
+                "total_decisions": len(logs),
+                "high_severity": high_severity,
+                "delayed": sum(delayed_routes.values()),
+                "at_risk": at_risk,
+                "by_agent": dict(by_agent),
+                "suggestions": suggestions,
+            },
         }
 
     def act(self, decision):
@@ -93,9 +115,23 @@ class AdvisorAgent(BaseAgent):
                 self.log(suggestion, severity="info")
                 added.append(suggestion)
 
+        # Only brief when something actually happened. Two reasons, and the
+        # second is the important one: a briefing about an unchanged shift is
+        # noise, and a model's wording varies between calls, so writing one
+        # every cycle would leave the audit trail growing forever and the
+        # cycle never settling.
+        briefing, briefing_source = None, None
+        if added:
+            briefing, briefing_source = write_briefing(decision["facts"])
+            self.log(briefing, severity="info")
+
         return {
             "totalDecisions": decision["totalDecisions"],
             "byAgent": decision["byAgent"],
             "suggestions": decision["suggestions"],
             "newlyLogged": len(added),
+            "briefing": briefing,
+            # 'gemini' or 'template' - surfaced so the panel can say which,
+            # rather than letting a fallback pass itself off as the model.
+            "briefingSource": briefing_source,
         }

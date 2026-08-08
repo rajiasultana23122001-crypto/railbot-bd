@@ -972,6 +972,38 @@
   content: '— ';
 }
 
+/* The Advisor Agent's written briefing, below the five steps because it is
+   about the cycle rather than one of them. */
+.cycle-briefing {
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.cycle-briefing-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* Which wrote it. Deliberately quiet, but never absent. */
+.cycle-briefing-label em {
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  color: var(--ink-faint);
+}
+
 /* ---------------- Loading and error ---------------- */
 
 .feedback {
