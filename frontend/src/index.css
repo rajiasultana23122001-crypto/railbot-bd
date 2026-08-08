@@ -21,46 +21,54 @@
   --font-display: "JetBrains Mono", "Space Mono", ui-monospace, monospace;
   --font-mono: "JetBrains Mono", "Space Mono", ui-monospace, monospace;
 
-  /* Surfaces */
-  --page: #0a0e17;
-  --page-2: #0d1117;
-  --card: #111922;
-  --border: #1e2d3d;
-  --border-soft: #1a2332;
+  /* Surfaces — the flag's bottle green, taken down to near-black so it reads
+     as an instrument panel rather than a field of colour. */
+  --page: #061410;
+  --page-2: #081a14;
+  --card: #0c2119;
+  --border: #1a3d2e;
+  --border-soft: #143026;
 
-  /* Brand / accent */
-  --brand: #f5a623;
-  --brand-2: #e8a530;
-  --gold: #f5a623;
-  --gold-soft: rgba(245, 166, 35, 0.14);
+  /* Brand / accent — the flag's red. Kept for identity and for anything the
+     operator should look at first. */
+  --accent-rgb: 244, 42, 65;
+  --brand: #f42a41;
+  --brand-2: #e0233a;
+  --gold: #f42a41;
+  --gold-soft: rgba(var(--accent-rgb), 0.15);
 
   /* Text */
-  --ink: #dce4ec;
-  --ink-soft: #6b7b8d;
-  --ink-faint: #4d5c6d;
+  --ink: #dfe9e3;
+  --ink-soft: #7e968a;
+  --ink-faint: #5c7267;
 
-  /* Status */
-  --ok: #00e676;
-  --ok-soft: rgba(0, 230, 118, 0.12);
+  /* Status — "late" is deliberately a deeper crimson than the accent red, so
+     a Delayed badge never reads as just another highlight. */
+  --ok: #22e07c;
+  --ok-soft: rgba(34, 224, 124, 0.13);
   --warn: #f5a623;
   --warn-soft: rgba(245, 166, 35, 0.14);
-  --late: #ff4444;
-  --late-soft: rgba(255, 68, 68, 0.13);
+  --late: #ff6b5e;
+  --late-soft: rgba(255, 107, 94, 0.14);
 
   /* Left rail and top bar */
-  --rail-bg: #0d1117;
-  --rail-ink: #6b7b8d;
-  --rail-ink-active: #f5a623;
-  --rail-active: rgba(245, 166, 35, 0.14);
-  --bar-bg: #0d1117;
-  --bar-ink: #dce4ec;
-  --bar-ink-soft: #6b7b8d;
+  --rail-bg: #04120d;
+  --rail-ink: #7e968a;
+  --rail-ink-active: #f42a41;
+  --rail-active: rgba(var(--accent-rgb), 0.16);
+  --bar-bg: #04120d;
+  --bar-ink: #dfe9e3;
+  --bar-ink-soft: #7e968a;
+  /* The rail and bar are dark in both themes, so their accent cannot be the
+     page accent - the light theme darkens that for white surfaces, which is
+     unreadable here. This one is tuned for the dark bar instead. */
+  --bar-accent: #ff4d5f;
 
   --shadow: none;
 
   /* Surface texture: scan lines over a faint instrument grid. */
   --scan-line: rgba(255, 255, 255, 0.025);
-  --grid-line: rgba(30, 45, 61, 0.35);
+  --grid-line: rgba(26, 61, 46, 0.4);
 
   font-family: var(--font-body);
   line-height: 1.55;
@@ -74,40 +82,44 @@
    stay dark: they anchor the layout, and keeping them makes the two themes
    read as one product rather than two. */
 :root[data-theme='light'] {
-  --page: #eceff4;
-  --page-2: #e2e7ee;
+  --page: #edf2ef;
+  --page-2: #e1ebe5;
   --card: #ffffff;
-  --border: #c4cdd9;
-  --border-soft: #d7dee7;
+  --border: #c2d4c9;
+  --border-soft: #d6e3db;
 
-  --brand: #a8650a;
-  --brand-2: #96590a;
-  --gold: #a8650a;
-  --gold-soft: rgba(168, 101, 10, 0.12);
+  --accent-rgb: 190, 24, 42;
+  --brand: #be182a;
+  --brand-2: #a41224;
+  --gold: #be182a;
+  --gold-soft: rgba(var(--accent-rgb), 0.11);
 
-  --ink: #16202b;
-  --ink-soft: #55636f;
-  --ink-faint: #7b8895;
+  --ink: #10201a;
+  --ink-soft: #4e6459;
+  --ink-faint: #74897d;
 
-  --ok: #0b7a43;
-  --ok-soft: rgba(11, 122, 67, 0.12);
+  --ok: #0a7a45;
+  --ok-soft: rgba(10, 122, 69, 0.12);
   --warn: #a8650a;
   --warn-soft: rgba(168, 101, 10, 0.12);
-  --late: #bc2b2b;
-  --late-soft: rgba(188, 43, 43, 0.11);
+  --late: #c0392b;
+  --late-soft: rgba(192, 57, 43, 0.11);
 
-  --rail-bg: #16202b;
-  --rail-ink: #8b9aa9;
-  --rail-ink-active: #f5a623;
-  --rail-active: rgba(245, 166, 35, 0.18);
-  --bar-bg: #16202b;
-  --bar-ink: #e6ecf2;
-  --bar-ink-soft: #94a3b1;
+  /* The rail keeps the flag's bottle green in both themes - it is what makes
+     the two read as one product rather than two applications. */
+  --rail-bg: #06382a;
+  --rail-ink: #8fb3a2;
+  --rail-ink-active: #ff8a92;
+  --rail-active: rgba(255, 138, 146, 0.16);
+  --bar-bg: #06382a;
+  --bar-ink: #eaf3ee;
+  --bar-ink-soft: #9dbfae;
+  --bar-accent: #ff8a92;
 
-  --shadow: 0 1px 2px rgba(22, 32, 43, 0.05);
+  --shadow: 0 1px 2px rgba(16, 32, 26, 0.05);
 
-  --scan-line: rgba(22, 32, 43, 0.016);
-  --grid-line: rgba(120, 136, 152, 0.22);
+  --scan-line: rgba(16, 32, 26, 0.016);
+  --grid-line: rgba(120, 152, 134, 0.22);
 }
 
 * {
@@ -250,9 +262,9 @@ table {
 }
 
 .theme-toggle:hover {
-  color: var(--gold);
-  border-color: var(--gold);
-  background: var(--gold-soft);
+  color: var(--bar-accent);
+  border-color: var(--bar-accent);
+  background: rgba(var(--accent-rgb), 0.15);
 }
 
 .theme-toggle svg {

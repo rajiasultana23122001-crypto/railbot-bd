@@ -49,16 +49,16 @@
 }
 
 .rail-btn:hover:not(:disabled) {
-  background: rgba(245, 166, 35, 0.08);
+  background: rgba(var(--accent-rgb), 0.08);
   border-color: var(--border);
   color: var(--rail-ink-active);
 }
 
 .rail-btn.is-active {
   background: var(--rail-active);
-  border-color: var(--gold);
+  border-color: var(--bar-accent);
   color: var(--rail-ink-active);
-  box-shadow: 0 0 8px rgba(245, 166, 35, 0.25);
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.25);
 }
 
 .rail-btn:disabled {
@@ -108,16 +108,16 @@
 .navbar-mark span {
   width: 3px;
   height: 15px;
-  background: var(--gold);
+  background: var(--bar-accent);
 }
 
 .navbar-brand em {
   font-style: normal;
-  color: var(--gold);
+  color: var(--bar-accent);
 }
 
 .navbar-sep {
-  color: var(--ink-faint);
+  color: var(--bar-ink-soft);
 }
 
 /* ---------------- Live stats + clock ---------------- */
@@ -143,13 +143,13 @@
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--bar-ink-soft);
 }
 
 .navbar-stat-value {
   font-size: 15px;
   font-weight: 700;
-  color: var(--brand);
+  color: var(--bar-accent);
 }
 
 .navbar-clock {
@@ -167,13 +167,13 @@
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--bar-ink-soft);
 }
 
 .navbar-clock-value {
   font-size: 15px;
   font-weight: 700;
-  color: var(--ink);
+  color: var(--bar-ink);
 }
 
 /* ---------------- Page canvas ---------------- */
@@ -331,7 +331,7 @@
 
 .role-pick-card:hover {
   border-color: var(--gold);
-  box-shadow: 0 0 10px rgba(245, 166, 35, 0.18);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.18);
 }
 
 .role-pick-card .panel-title {
