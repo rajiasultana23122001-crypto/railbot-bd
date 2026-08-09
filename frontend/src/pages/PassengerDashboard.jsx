@@ -1,5 +1,6 @@
 import JourneyCard from '../components/JourneyCard'
 import RouteMap from '../components/RouteMap'
+import TrainArt from '../components/TrainArt'
 import { ErrorMessage, Loading } from '../components/Feedback'
 import { IconAlert, IconBell, IconClock, IconTrain } from '../components/icons'
 import { fetchJourneys, getPhoneNumber } from '../api/client'
@@ -18,7 +19,14 @@ function PassengerDashboard() {
 
   const header = (
     <>
-      <RouteMap />
+      {/* The route lines used to float loose behind the heading; they are
+          the backdrop to the train now, which keeps the two from
+          overlapping and gives the page one thing to look at, not two. */}
+      <section className="hero-band bracketed" aria-hidden="true">
+        <RouteMap />
+        <TrainArt />
+      </section>
+
       <div className="page-header">
         <p className="page-eyebrow">Passenger View</p>
         <h1 className="page-title">Your Journeys</h1>
