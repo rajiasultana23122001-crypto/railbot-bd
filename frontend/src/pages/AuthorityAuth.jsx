@@ -50,13 +50,13 @@ function AuthorityAuth() {
   }
 
   return (
-    <>
+    <div className="auth-screen">
       <div className="page-header">
         <p className="page-eyebrow">Authority</p>
         <h1 className="page-title">{mode === 'signup' ? 'Create Account' : 'Sign In'}</h1>
       </div>
 
-      <section className="panel" style={{ maxWidth: 420 }}>
+      <section className="panel auth-panel">
         <div className="auth-tabs">
           <button
             type="button"
@@ -159,7 +159,7 @@ function AuthorityAuth() {
           </form>
         )}
       </section>
-    </>
+    </div>
   )
 }
 

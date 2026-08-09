@@ -813,12 +813,16 @@
   flex: 0 1 130px;
 }
 
+/* --ink-soft, not --ink-faint: at 10px these labels are too small to claim
+   WCAG's large-text allowance, and faint put them at 3.74:1 on the light
+   theme's white card. They name the field you are typing into - not
+   decoration that can afford to recede. */
 .field label {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink-soft);
 }
 
 .field select,
