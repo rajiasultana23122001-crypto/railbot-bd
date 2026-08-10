@@ -310,13 +310,49 @@
   white-space: nowrap;
 }
 
+/* ---------------- Auth screens ----------------
+   Signing in is not a dashboard. There is one thing to do and no data to
+   scan, so the content sits in the middle of the page instead of being
+   pinned to the left edge with the rest of the width left empty - which is
+   what the dashboard layout does, correctly, for pages that are full of
+   figures. */
+
+.auth-screen {
+  min-height: calc(100vh - 190px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding-bottom: 32px;
+}
+
+.auth-screen .page-header {
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.auth-screen .page-subtitle {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* The form itself. Narrow on purpose: a login field that runs the width of
+   a desktop screen looks like a mistake, and long lines are harder to
+   check a phone number in. */
+.auth-panel {
+  width: 100%;
+  max-width: 400px;
+}
+
 /* ---------------- Role picker (AuthLanding) ---------------- */
 
 .role-pick-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
   gap: 16px;
-  max-width: 680px;
+  width: 100%;
+  max-width: 620px;
 }
 
 .role-pick-card {
@@ -386,6 +422,21 @@
 .auth-form {
   flex-direction: column;
   align-items: stretch;
+  gap: 15px;
+}
+
+/* .field carries `flex: 1 1 230px`, sized for the operator's delay form
+   where the fields sit side by side and 230px is a *width*. Stacked into a
+   column that basis becomes a *height*, and grow stretches it further -
+   which is what put a screen's worth of empty space between Phone Number
+   and Password. Here each field is only as tall as its label and input. */
+.auth-form .field {
+  flex: 0 0 auto;
+}
+
+.auth-form .run-button {
+  width: 100%;
+  margin-top: 3px;
 }
 
 /* ---------------- Narrow screens ---------------- */

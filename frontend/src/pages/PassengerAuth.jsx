@@ -71,7 +71,7 @@ function PassengerAuth() {
   }
 
   return (
-    <>
+    <div className="auth-screen">
       <div className="page-header">
         <p className="page-eyebrow">Passenger</p>
         <h1 className="page-title">
@@ -79,7 +79,7 @@ function PassengerAuth() {
         </h1>
       </div>
 
-      <section className="panel" style={{ maxWidth: 420 }}>
+      <section className="panel auth-panel">
         {mode !== 'verify' && (
           <div className="auth-tabs">
             <button
@@ -205,7 +205,7 @@ function PassengerAuth() {
           </form>
         )}
       </section>
-    </>
+    </div>
   )
 }
 

@@ -34,7 +34,13 @@
   --accent-rgb: 244, 42, 65;
   --brand: #f42a41;
   --brand-2: #e0233a;
-  --gold: #f42a41;
+  /* A shade up from --brand, and deliberately so: the accent is mostly worn
+     by small uppercase text - field labels, tab labels, eyebrows - which is
+     too small to claim WCAG's large-text allowance. The flag red itself
+     reads 4.21:1 on --card, just under the 4.5 line; this clears it at 4.66
+     without leaving the flag. --brand keeps the exact red for borders,
+     brackets and glows, where contrast ratios do not apply. */
+  --gold: #fa3b50;
   --gold-soft: rgba(var(--accent-rgb), 0.15);
 
   /* Text */

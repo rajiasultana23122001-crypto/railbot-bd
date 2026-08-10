@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 /** First screen for anyone not signed in: pick which kind of account this is. */
 function AuthLanding() {
   return (
-    <>
+    <div className="auth-screen">
       <div className="page-header">
         <p className="page-eyebrow">Welcome</p>
         <h1 className="page-title">Sign In to RailBot BD</h1>
@@ -32,7 +32,7 @@ function AuthLanding() {
           <span className="role-pick-cta">Continue as Authority →</span>
         </Link>
       </div>
-    </>
+    </div>
   )
 }
 
