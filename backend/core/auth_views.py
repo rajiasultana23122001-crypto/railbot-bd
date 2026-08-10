@@ -1,12 +1,12 @@
 """Passenger and Authority authentication endpoints.
 
 Passenger signup is NID + phone + password; the phone is then OTP-confirmed
-through Twilio Verify before the account can log in (Verify owns expiry,
-rate limiting and attempt limits - no hand-rolled code system). Authority
-signup is phone + a pre-issued Authority ID + password; the ID must already
-exist in the AuthorityID table and not be claimed yet - nothing here
-generates or accepts an arbitrary ID. Login is shared: phone + password,
-role read back off the account rather than asked for.
+through sms.net.bd before the account can log in (core.services.otp owns
+expiry, rate limiting and attempt limits). Authority signup is phone + a
+pre-issued Authority ID + password; the ID must already exist in the
+AuthorityID table and not be claimed yet - nothing here generates or
+accepts an arbitrary ID. Login is shared: phone + password, role read back
+off the account rather than asked for.
 """
 
 import json
@@ -21,7 +21,7 @@ from django.views.decorators.http import require_http_methods
 from rest_framework.authtoken.models import Token
 
 from .models import AuthorityID, Passenger, Profile
-from .services.twilio_verify import check_verification, start_verification
+from .services.otp import check_verification, start_verification
 
 # Accepts the 10-digit (old) or 17-digit (new) Bangladesh NID format, digits
 # only. Nothing else is accepted - no dashes, no letters.

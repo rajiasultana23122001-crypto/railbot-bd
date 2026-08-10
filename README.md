@@ -31,7 +31,7 @@ Every agent follows the same **Observe → Reason → Act** cycle.
 - **Backend:** Django (Python REST API), token auth via `rest_framework.authtoken`
 - **Database:** SQLite (development) / PostgreSQL (production)
 - **Agents & AI:** Python decision-loop classes, scikit-learn, Google Gemini API
-- **External APIs:** sms.net.bd (delay notices), Twilio Verify (OTP verification), OpenWeatherMap (weather data)
+- **External APIs:** sms.net.bd (delay notices and OTP verification), OpenWeatherMap (weather data)
 
 ## Project Structure
 
@@ -74,14 +74,12 @@ Authentication below), so it is safe to re-run at any time. The two `ml`
 scripts build the Risk Agent's model and only need running once.
 
 `.env` holds the third-party credentials — see `.env.example` for what each
-one does and the one-time Twilio Console setup. Leave it unfilled for local
-dev; every one of them has a fallback, and nothing about the system's
-behaviour depends on which are present:
+one does. Leave it unfilled for local dev; every one of them has a fallback,
+and nothing about the system's behaviour depends on which are present:
 
 | Variable | Without it |
 |---|---|
-| `SMS_NET_BD_API_KEY` | The Manager Agent's delay texts are simulated |
-| `TWILIO_*` (three) | Passenger OTP accepts `000000` |
+| `SMS_NET_BD_API_KEY` | The Manager Agent's delay texts are simulated, and passenger OTP accepts `000000` |
 | `OPENWEATHER_API_KEY` | Route weather is generated, seeded per destination |
 | `GEMINI_API_KEY` | The Advisor Agent's briefing is written from a template |
 
@@ -135,7 +133,7 @@ login shared by both.
 
 **Passenger signup** takes an NID (10-digit old format or 17-digit new
 format, digits only) and a phone number, both unique per account. The phone
-is then OTP-confirmed through Twilio Verify — `verify-signup` with the code
+is then OTP-confirmed through sms.net.bd — `verify-signup` with the code
 activates the account. Login is refused until that happens. NID uniqueness
 is checked, but the NID itself is never verified against a government
 database — `nid_verified`-style manual checking is a future addition, not
@@ -331,10 +329,10 @@ Working end to end: all three screens read live data from the Django API, and
 all five agents run against the database with the Risk Agent driven by a
 trained model and the Advisor Agent's briefing written by Gemini.
 
-Four things reach outside the system, and each is reached through exactly
-one function so it can be found and swapped: `send_sms()` for delay texts,
-`twilio_verify` for passenger OTP, `current_weather()` for route conditions,
-and `write_briefing()` for the shift briefing. All four fall back when their
+Three things reach outside the system, and each is reached through exactly
+one function so it can be found and swapped: `send_sms()` for delay texts
+and passenger OTP, `current_weather()` for route conditions, and
+`write_briefing()` for the shift briefing. All three fall back when their
 key is absent, which is how the project runs locally and in tests. What
 falls back is the *outside call* — the agents' own decisions are made by the
 same rules either way.

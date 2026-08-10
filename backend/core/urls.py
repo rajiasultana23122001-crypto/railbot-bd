@@ -18,8 +18,8 @@ urlpatterns = [
     path("delays", views.report_delay),
     path("agents/run", views.run_agents),
 
-    # Passenger: NID + phone + password signup, OTP-verified via Twilio
-    # Verify before the account can log in.
+    # Passenger: NID + phone + password signup, OTP-verified via sms.net.bd
+    # (core.services.otp) before the account can log in.
     path("auth/passenger/signup", auth_views.passenger_signup),
     path("auth/passenger/verify-signup", auth_views.passenger_verify_signup),
 

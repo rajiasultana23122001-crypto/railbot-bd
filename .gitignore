@@ -1,5 +1,5 @@
 # ---------- Secrets ----------
-# API keys for Gemini, Twilio and OpenWeatherMap live here. Never commit them.
+# API keys for Gemini, sms.net.bd and OpenWeatherMap live here. Never commit them.
 .env
 .env.*
 !.env.example

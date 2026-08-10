@@ -7,11 +7,14 @@ Authority account is only as trustworthy as the ID it had to present.
 """
 
 import json
+from datetime import timedelta
 
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework.authtoken.models import Token
 
-from core.models import AuthorityID, Profile
+from core.models import AuthorityID, OTPCode, Profile
+from core.services.otp import MAX_ATTEMPTS, check_verification, start_verification
 
 from .builders import PASSWORD, make_authority_account, make_passenger_account
 
@@ -192,3 +195,53 @@ class AuthoritySignupTests(TestCase):
     def test_an_id_can_only_be_claimed_once(self):
         self.assertEqual(self.signup().status_code, 201)
         self.assertEqual(self.signup(phone="+8801911111111").status_code, 409)
+
+
+class OTPServiceTests(TestCase):
+    """core.services.otp - the hand-rolled replacement for Twilio Verify.
+
+    No SMS_NET_BD_API_KEY in the test environment, so every code sent here
+    is the simulated "000000", exactly like the old Twilio simulated mode.
+    """
+
+    phone = "+8801733333333"
+
+    def test_simulated_code_is_accepted(self):
+        start_verification(self.phone)
+        self.assertTrue(check_verification(self.phone, "000000"))
+
+    def test_a_wrong_code_is_rejected(self):
+        start_verification(self.phone)
+        self.assertFalse(check_verification(self.phone, "111111"))
+
+    def test_a_code_cannot_be_used_twice(self):
+        start_verification(self.phone)
+        self.assertTrue(check_verification(self.phone, "000000"))
+        self.assertFalse(check_verification(self.phone, "000000"))
+
+    def test_an_expired_code_is_rejected(self):
+        start_verification(self.phone)
+        OTPCode.objects.filter(phone_number=self.phone).update(
+            created_at=timezone.now() - timedelta(minutes=6)
+        )
+        self.assertFalse(check_verification(self.phone, "000000"))
+
+    def test_the_code_locks_out_after_too_many_wrong_attempts(self):
+        start_verification(self.phone)
+        for _ in range(MAX_ATTEMPTS):
+            self.assertFalse(check_verification(self.phone, "wrong!"))
+
+        # Locked out now - even the right code no longer works, and a fresh
+        # start_verification() is required.
+        self.assertFalse(check_verification(self.phone, "000000"))
+
+    def test_no_code_at_all_is_rejected_rather_than_erroring(self):
+        self.assertFalse(check_verification("+8801799999999", "000000"))
+
+    def test_resending_within_a_minute_reuses_the_pending_code(self):
+        """The rate limit: no second SMS, and the first code stays valid."""
+        start_verification(self.phone)
+        start_verification(self.phone)
+
+        self.assertEqual(OTPCode.objects.filter(phone_number=self.phone).count(), 1)
+        self.assertTrue(check_verification(self.phone, "000000"))
