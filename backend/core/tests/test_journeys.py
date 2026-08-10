@@ -129,7 +129,7 @@ class BookingToAccountLinkTests(TestCase):
         )
         self.assertEqual(response.status_code, 201, response.content)
 
-        # Twilio Verify is simulated without credentials, and accepts 000000.
+        # OTP is simulated without SMS_NET_BD_API_KEY, and accepts 000000.
         response = self.client.post(
             "/api/auth/passenger/verify-signup",
             data=json.dumps({"phone_number": phone, "code": "000000"}),

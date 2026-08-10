@@ -17,10 +17,9 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Twilio credentials (voice calls and OTP verification) live in a local .env,
-# never committed - see .env.example for the variables it needs and the
-# one-time Twilio Console setup. Loaded here, read via os.environ.get()
-# wherever a Twilio call is made.
+# Third-party credentials (sms.net.bd, Gemini, OpenWeatherMap) live in a
+# local .env, never committed - see .env.example for what each one does.
+# Loaded here, read via os.environ.get() wherever one of those calls is made.
 load_dotenv(BASE_DIR / ".env")
 
 

@@ -1,8 +1,8 @@
 """Google Gemini, used by the Advisor Agent to write its shift briefing.
 
 Simulated unless GEMINI_API_KEY is set - the same convention
-core.services.twilio_verify and core.agents.manager_agent.send_sms already
-follow, so local development, tests and CI never need a key. Without one,
+core.services.otp and core.agents.manager_agent.send_sms already follow, so
+local development, tests and CI never need a key. Without one,
 _template_briefing() writes the same paragraph from the same figures, and
 nothing else in the system behaves differently.
 

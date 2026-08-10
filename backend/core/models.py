@@ -75,6 +75,28 @@ class Passenger(models.Model):
         return self.name
 
 
+class OTPCode(models.Model):
+    """A one-time passcode texted to a phone number via sms.net.bd.
+
+    sms.net.bd only sends the text - it does not generate codes, expire
+    them, or limit attempts the way Twilio Verify used to. This table and
+    core.services.otp do that work instead: code_hash is never the plaintext
+    code (see core.services.otp for the hashing), created_at is what expiry
+    is measured against, attempts locks the code out after too many wrong
+    guesses, and is_used stops a correct code being replayed.
+    """
+
+    phone_number = models.CharField(max_length=20)
+    code_hash = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+    attempts = models.IntegerField(default=0)
+    is_used = models.BooleanField(default=False)
+
+    def __str__(self):
+        state = "used" if self.is_used else f"{self.attempts} attempt(s)"
+        return f"OTP for {self.phone_number} ({state})"
+
+
 class AuthorityID(models.Model):
     """A BD Railway-issued Authority ID, pre-loaded before anyone signs up.
 
@@ -127,8 +149,8 @@ class Profile(models.Model):
     # constraint.
     nid_number = models.CharField(max_length=17, unique=True, null=True, blank=True)
 
-    # Set once the Twilio Verify OTP sent at signup is confirmed. A passenger
-    # cannot log in until this is True (see auth_views.login).
+    # Set once the OTP sent at signup (see core.services.otp) is confirmed. A
+    # passenger cannot log in until this is True (see auth_views.login).
     is_phone_verified = models.BooleanField(default=False)
 
     # Linked manually once a Station Authority matches this passenger to a
