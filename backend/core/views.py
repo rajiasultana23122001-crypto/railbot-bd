@@ -12,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .agents import run_cycle
-from .agents.scheduler_agent import add_minutes
+from .agents.scheduler_agent import add_minutes, sync_arrivals
 from .auth import any_role_required, authority_required, passenger_required
 from .models import AgentLog, Arrival, Booking, Platform, Station, Train
 
@@ -138,11 +138,18 @@ def report_delay(request):
     except json.JSONDecodeError:
         return JsonResponse({"error": "Body must be JSON."}, status=400)
 
-    train_no = str(payload.get("trainNo", "")).strip()
+    train_no = str(payload.get("trainNo") or "").strip()
     raw_minutes = payload.get("minutes")
 
     if not train_no:
         return JsonResponse({"error": "Pick a train first."}, status=400)
+
+   # bool is a subclass of int in Python, so int(True) is 1 - a checkbox
+    # posted into this field would otherwise book a one-minute delay.
+    if isinstance(raw_minutes, bool):
+        return JsonResponse(
+            {"error": "Delay must be a whole number of minutes."}, status=400
+        )
 
     try:
         minutes = int(raw_minutes)
@@ -156,23 +163,31 @@ def report_delay(request):
             {"error": "Delay must be between 1 and 300 minutes."}, status=400
         )
 
-    booking = (
-        Booking.objects.select_related("train").filter(train__number=train_no).first()
+    bookings = list(
+        Booking.objects.select_related("train").filter(train__number=train_no)
     )
-    if booking is None:
+    if not bookings:
         return JsonResponse(
             {"error": f"No booked journey on train {train_no}."}, status=404
         )
 
     # Record the delay as freshly reported: nothing recovered yet, and the
-    # passenger has not been told, so the agents have work to do.
-    booking.status = "delayed"
-    booking.delay_minutes = minutes
-    booking.recovered_minutes = 0
-    booking.expected_departure = add_minutes(booking.scheduled_departure, minutes)
-    booking.notified_departure = None
-    booking.agent_note = None
-    booking.save()
+    # passenger has not been told, so the agents have work to do. A delay is
+    # a fact about the train, so every booking aboard it is updated - the
+    # Manager Agent selects on status, and would never see a passenger this
+    # loop skipped.
+    for booking in bookings:
+        booking.status = "delayed"
+        booking.delay_minutes = minutes
+        booking.recovered_minutes = 0
+        booking.expected_departure = add_minutes(booking.scheduled_departure, minutes)
+        booking.notified_departure = None
+        booking.agent_note = None
+        booking.save()
+        sync_arrivals(booking)
+
+    # The confirmation below is about the train, so any booking will do.
+    booking = bookings[0]
 
     # Read these before the agents run: afterwards expected_departure has
     # already been pulled earlier by the Scheduler, and reporting that back as

@@ -21,6 +21,11 @@ class ResourceAgent(BaseAgent):
         """Occupancy on every platform."""
         readings = []
         for platform in Platform.objects.all():
+            # A platform with no stated capacity has no meaningful occupancy
+            # figure. Skipping it stops one bad row from taking down the four
+            # agents queued behind this one.
+            if platform.capacity <= 0:
+                continue
             percent = round((platform.occupancy / platform.capacity) * 100)
             readings.append({"platform": platform, "percent": percent})
         return readings
