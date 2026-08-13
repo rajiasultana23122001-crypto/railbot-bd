@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar'
 import { getAuthToken, getRole, ROLE_AUTHORITY, ROLE_PASSENGER } from './api/client'
 import AuthLanding from './pages/AuthLanding'
 import AuthorityAuth from './pages/AuthorityAuth'
+import BookTicket from './pages/BookTicket'
 import PassengerAuth from './pages/PassengerAuth'
 import PassengerDashboard from './pages/PassengerDashboard'
 import StationMasterPanel from './pages/StationMasterPanel'
@@ -48,6 +49,14 @@ function App() {
               element={
                 <RouteGuard allow={[ROLE_PASSENGER]}>
                   <PassengerDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/book"
+              element={
+                <RouteGuard allow={[ROLE_PASSENGER]}>
+                  <BookTicket />
                 </RouteGuard>
               }
             />

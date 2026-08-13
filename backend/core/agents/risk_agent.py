@@ -45,7 +45,11 @@ class RiskAgent(BaseAgent):
     def observe(self):
         """Every journey not already known to be delayed, plus its conditions."""
         observations = []
-        for booking in Booking.objects.exclude(status="delayed").select_related("train"):
+        for booking in (
+            Booking.objects.exclude(status="delayed")
+            .exclude(booking_status="cancelled")
+            .select_related("train")
+        ):
             train = booking.train
             departure_hour = int(booking.scheduled_departure.split(":")[0])
             observations.append(

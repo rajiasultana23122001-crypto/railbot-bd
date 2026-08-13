@@ -29,7 +29,11 @@ class SchedulerAgent(BaseAgent):
 
     def observe(self):
         """Journeys currently running late."""
-        return list(Booking.objects.filter(status="delayed").select_related("train"))
+        return list(
+            Booking.objects.filter(status="delayed")
+            .exclude(booking_status="cancelled")
+            .select_related("train")
+        )
 
     def reason(self, observation):
         """Work out how many minutes each journey can still recover.

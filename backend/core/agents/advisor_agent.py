@@ -30,7 +30,9 @@ class AdvisorAgent(BaseAgent):
         """The full audit trail, plus the current state it describes."""
         return {
             "logs": list(AgentLog.objects.all()),
-            "bookings": list(Booking.objects.select_related("train")),
+            "bookings": list(
+                Booking.objects.exclude(booking_status="cancelled").select_related("train")
+            ),
             "platforms": list(Platform.objects.all()),
         }
 

@@ -10,18 +10,22 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from core.data.network import SEAT_CAPACITY, SEAT_CLASSES, STATION_CODES
 from core.data.network import TRAINS as NETWORK_TRAINS
-from core.data.network import seat_classes_for
+from core.data.network import build_stops, seat_classes_for
 from core.models import (
     AgentLog,
     Arrival,
     AuthorityID,
     Booking,
+    BookingPassenger,
     Passenger,
     Platform,
     Profile,
     Station,
     Train,
+    TrainStop,
+    generate_pnr,
 )
 
 # Example BD Railway-issued Authority IDs, pre-loaded so authority signup has
@@ -143,7 +147,17 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        for model in (AgentLog, Arrival, Platform, Booking, Station, Passenger, Train):
+        for model in (
+            AgentLog,
+            Arrival,
+            Platform,
+            BookingPassenger,
+            Booking,
+            TrainStop,
+            Station,
+            Passenger,
+            Train,
+        ):
             model.objects.all().delete()
 
         # Reference data, not sample data to churn: get-or-create rather than
@@ -151,6 +165,14 @@ class Command(BaseCommand):
         # PROTECT-block on) an AuthorityID an authority has already claimed.
         for code, note in AUTHORITY_IDS:
             AuthorityID.objects.get_or_create(code=code, defaults={"note": note})
+
+        # Every station in the network, so the booking search's From/To
+        # pickers have the whole system to choose from - not just the one
+        # station (Dhaka) that happens to have a crowding board.
+        stations = {
+            name: Station.objects.create(name=name, code=code)
+            for name, code in STATION_CODES.items()
+        }
 
         # Origin and destination are the ends of the route, so the two can
         # never disagree with the stations the train actually calls at.
@@ -165,7 +187,24 @@ class Command(BaseCommand):
                 scheduled_halts=halts,
                 route=route,
                 seat_classes=seat_classes_for(number),
+                seat_capacity={
+                    code: SEAT_CAPACITY[code]
+                    for code in seat_classes_for(number)
+                    if code in SEAT_CAPACITY
+                },
             )
+
+            for sequence, (station_name, cumulative_km, arrival, departure) in enumerate(
+                build_stops(route, distance, number)
+            ):
+                TrainStop.objects.create(
+                    train=trains[number],
+                    station=stations[station_name],
+                    sequence=sequence,
+                    arrival=arrival,
+                    departure=departure,
+                    distance_km=cumulative_km,
+                )
 
         for name, phone, nid, bookings in PASSENGERS:
             passenger = Passenger.objects.create(name=name, phone=phone)
@@ -187,8 +226,17 @@ class Command(BaseCommand):
             )
 
             for number, date, sched, exp, plat, coach, status, delay, note in bookings:
+                train = trains[number]
+                # coach is "<class code> / <seat>", e.g. "SNIGDHA / C1-24" -
+                # read the class back out rather than carrying it twice.
+                seat_class, _, seat_number = coach.partition(" / ")
+                fare = round(
+                    SEAT_CLASSES.get(seat_class, {}).get("taka_per_km", 0)
+                    * train.distance_km
+                )
+
                 Booking.objects.create(
-                    train=trains[number],
+                    train=train,
                     passenger=passenger,
                     travel_date=date,
                     scheduled_departure=sched,
@@ -201,14 +249,18 @@ class Command(BaseCommand):
                     # The passenger was told the delayed time; the Scheduler
                     # Agent has not yet had a chance to improve on it.
                     notified_departure=exp if status == "delayed" else None,
+                    pnr=generate_pnr(),
+                    booking_status="confirmed",
+                    seat_class=seat_class,
+                    seat_numbers=[seat_number] if seat_number else [],
+                    passenger_count=1,
+                    fare_paid=fare,
                 )
 
-        station = Station.objects.create(
-            name="Dhaka (Kamalapur)",
-            code="DHKA",
-            passengers_on_site=3180,
-            capacity=3500,
-        )
+        station = stations["Dhaka (Kamalapur)"]
+        station.passengers_on_site = 3180
+        station.capacity = 3500
+        station.save()
 
         for number, occupancy, capacity, waiting_for in PLATFORMS:
             Platform.objects.create(
@@ -238,7 +290,9 @@ class Command(BaseCommand):
             )
 
         self.stdout.write("Database seeded:")
+        self.stdout.write(f"  stations   {Station.objects.count()}")
         self.stdout.write(f"  trains     {Train.objects.count()}")
+        self.stdout.write(f"  train stops {TrainStop.objects.count()}")
         self.stdout.write(f"  bookings   {Booking.objects.count()}")
         self.stdout.write(f"  platforms  {Platform.objects.count()}")
         self.stdout.write(f"  arrivals   {Arrival.objects.count()}")

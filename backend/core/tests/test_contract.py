@@ -28,6 +28,7 @@ class BookingShapeTests(TestCase):
 
     EXPECTED_KEYS = {
         "id",
+        "bookingId",
         "train",
         "trainNo",
         "from",
@@ -40,6 +41,13 @@ class BookingShapeTests(TestCase):
         "status",
         "delayMinutes",
         "agentNote",
+        # Added for self-service booking: see Booking in models.py.
+        "pnr",
+        "bookingStatus",
+        "seatClass",
+        "seatNumbers",
+        "passengerCount",
+        "farePaid",
     }
 
     def setUp(self):

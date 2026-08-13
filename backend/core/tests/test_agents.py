@@ -185,6 +185,20 @@ class SchedulerAgentTests(TestCase):
         self.assertEqual(result["adjusted"], [])
         self.assertEqual(booking.expected_departure, "07:00")
 
+    def test_a_cancelled_booking_is_left_alone_even_if_delayed(self):
+        """Cancelling is the passenger's own action, not a delay state - a
+        cancelled ticket should never come back to life with a recovered
+        departure time."""
+        booking = self.delayed_booking(35)
+        booking.booking_status = "cancelled"
+        booking.save()
+
+        result = SchedulerAgent().run()
+        booking.refresh_from_db()
+
+        self.assertEqual(result["adjusted"], [])
+        self.assertEqual(booking.recovered_minutes, 0)
+
 
 class ManagerAgentTests(TestCase):
     def setUp(self):
@@ -252,6 +266,14 @@ class ManagerAgentTests(TestCase):
 
         # The next cycle, with the network back, still finds it.
         self.assertEqual(len(ManagerAgent().run()["called"]), 1)
+
+    def test_does_not_text_a_cancelled_booking(self):
+        self.booking.booking_status = "cancelled"
+        self.booking.save()
+
+        result = ManagerAgent().run()
+
+        self.assertEqual(result["called"], [])
 
 
 class PhoneNumberTests(TestCase):

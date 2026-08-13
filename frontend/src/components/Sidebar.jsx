@@ -9,6 +9,7 @@ import {
   IconLogout,
   IconMenu,
   IconSettings,
+  IconTicket,
   IconUsers,
 } from './icons'
 
@@ -36,6 +37,13 @@ const items = [
     label: 'Passengers',
     Icon: IconUsers,
     to: '/passenger',
+    role: ROLE_PASSENGER,
+  },
+  {
+    key: 'book',
+    label: 'Book Ticket',
+    Icon: IconTicket,
+    to: '/book',
     role: ROLE_PASSENGER,
   },
   { key: 'reports', label: 'Reports', Icon: IconChart },

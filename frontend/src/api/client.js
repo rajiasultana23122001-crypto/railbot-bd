@@ -179,3 +179,45 @@ export function reportDelay({ trainNo, minutes }) {
     }),
   )
 }
+
+// ---------------- Booking ----------------
+// All passenger-only, same reasoning as fetchJourneys above.
+
+/** Every station in the network, for the booking search's From/To pickers. */
+export function fetchStations() {
+  return request('/api/stations', withAuth())
+}
+
+/** Trains between two stations on a date, with fare + seat availability per class. */
+export function searchTrains({ from, to, date }) {
+  const params = new URLSearchParams({ from, to, date })
+  return request(`/api/trains/search?${params}`, withAuth())
+}
+
+/** The seat map for one train/class/date. */
+export function fetchSeats({ trainId, seatClass, date }) {
+  const params = new URLSearchParams({ class: seatClass, date })
+  return request(`/api/trains/${trainId}/seats?${params}`, withAuth())
+}
+
+/** Book seats on a train. Returns the created ticket, PNR included. */
+export function createBooking(payload) {
+  return request(
+    '/api/bookings',
+    withAuth({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  )
+}
+
+/** One ticket by its PNR, scoped to the signed-in passenger. */
+export function fetchBooking(pnr) {
+  return request(`/api/bookings/${pnr}`, withAuth())
+}
+
+/** Cancel a booking. Its seats become available again immediately. */
+export function cancelBooking(bookingId) {
+  return request(`/api/bookings/${bookingId}/cancel`, withAuth({ method: 'POST' }))
+}

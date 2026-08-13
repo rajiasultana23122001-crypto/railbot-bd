@@ -18,6 +18,15 @@ urlpatterns = [
     path("delays", views.report_delay),
     path("agents/run", views.run_agents),
 
+    # Booking: search a route, see a seat map, book it, view or cancel the
+    # ticket afterwards. Passenger-only - see views.py for why.
+    path("stations", views.stations),
+    path("trains/search", views.train_search),
+    path("trains/<int:train_id>/seats", views.train_seats),
+    path("bookings", views.create_booking),
+    path("bookings/<str:pnr>", views.booking_detail),
+    path("bookings/<int:booking_id>/cancel", views.cancel_booking),
+
     # Passenger: NID + phone + password signup, OTP-verified via sms.net.bd
     # (core.services.otp) before the account can log in.
     path("auth/passenger/signup", auth_views.passenger_signup),

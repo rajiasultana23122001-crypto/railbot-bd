@@ -179,3 +179,13 @@ export function IconPlatform(props) {
     </svg>
   )
 }
+
+/** A ticket stub, for the booking flow. */
+export function IconTicket(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z" />
+      <path d="M14 6.5v11" strokeDasharray="2.2 2.2" />
+    </svg>
+  )
+}

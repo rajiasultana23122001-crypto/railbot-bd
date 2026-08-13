@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 import JourneyCard from '../components/JourneyCard'
 import RouteMap from '../components/RouteMap'
 import TrainArt from '../components/TrainArt'
@@ -14,7 +16,7 @@ import './Dashboard.css'
  * response rather than stored separately, so they cannot drift out of step.
  */
 function PassengerDashboard() {
-  const { data, loading, error, errorStatus } = useApi(fetchJourneys)
+  const { data, loading, error, errorStatus, reload } = useApi(fetchJourneys)
   useAuthRedirectOnFailure(errorStatus)
 
   const header = (
@@ -27,13 +29,18 @@ function PassengerDashboard() {
         <TrainArt />
       </section>
 
-      <div className="page-header">
-        <p className="page-eyebrow">Passenger View</p>
-        <h1 className="page-title">Your Journeys</h1>
-        <p className="page-subtitle">
-          Track your booked trains and see delay updates the moment RailBot's
-          agents detect them.
-        </p>
+      <div className="page-header page-header-row">
+        <div>
+          <p className="page-eyebrow">Passenger View</p>
+          <h1 className="page-title">Your Journeys</h1>
+          <p className="page-subtitle">
+            Track your booked trains and see delay updates the moment RailBot's
+            agents detect them.
+          </p>
+        </div>
+        <Link to="/book" className="run-button" style={{ textDecoration: 'none' }}>
+          Book a Ticket
+        </Link>
       </div>
     </>
   )
@@ -103,11 +110,12 @@ function PassengerDashboard() {
           // reads as a page that failed to load.
           <p className="placeholder">
             Nothing is booked against {getPhoneNumber() || 'this number'} yet.
-            A booking made against it will appear here on its own.
+            Book a ticket above, or a booking made against this number
+            elsewhere will appear here on its own.
           </p>
         ) : (
           journeys.map((journey) => (
-            <JourneyCard journey={journey} key={journey.id} />
+            <JourneyCard journey={journey} key={journey.id} onCancelled={reload} />
           ))
         )}
       </section>

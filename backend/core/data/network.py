@@ -88,6 +88,63 @@ SEAT_CLASSES = {
     "SHULOV": {"label": "Shulov", "taka_per_km": 0.40},
 }
 
+# Short station codes, the way Bangladesh Railway itself abbreviates them,
+# used by the booking search's From/To pickers and by TrainStop. Every name
+# in STATIONS gets one.
+STATION_CODES = {
+    "Dhaka (Kamalapur)": "DHKA",
+    "Biman Bandar": "BIMB",
+    "Bhairab Bazar": "BHBB",
+    "Brahmanbaria": "BRAH",
+    "Akhaura": "AKH",
+    "Cumilla": "CUM",
+    "Feni": "FENI",
+    "Chattogram": "CTG",
+    "Cox's Bazar": "COXB",
+    "Srimangal": "SRMG",
+    "Sylhet": "SYL",
+    "Kishoreganj": "KISH",
+    "Mymensingh": "MYM",
+    "Mohanganj": "MOHG",
+    "Jamalpur": "JAML",
+    "Tangail": "TANG",
+    "Ishwardi": "ISHW",
+    "Natore": "NATO",
+    "Rajshahi": "RAJ",
+    "Santahar": "SANT",
+    "Bogura": "BOGR",
+    "Parbatipur": "PARB",
+    "Dinajpur": "DINA",
+    "Panchagarh": "PANC",
+    "Chilahati": "CHIL",
+    "Rangpur": "RANG",
+    "Lalmonirhat": "LALM",
+    "Kurigram": "KURI",
+    "Kushtia": "KUSH",
+    "Rajbari": "RAJB",
+    "Faridpur": "FARI",
+    "Jashore": "JASH",
+    "Benapole": "BENA",
+    "Khulna": "KHUL",
+    "Chandpur": "CHAN",
+    "Noakhali": "NOAK",
+}
+
+# Total seats sold per class, roughly matching a real BR rake's coach
+# counts. Keyed the same as SEAT_CLASSES; how many are still free for a
+# given date is never stored, only counted live off confirmed Bookings.
+SEAT_CAPACITY = {
+    "AC_B": 33,
+    "AC_S": 55,
+    "SNIGDHA": 60,
+    "F_BERTH": 24,
+    "F_SEAT": 48,
+    "F_CHAIR": 60,
+    "S_CHAIR": 64,
+    "SHOVAN": 88,
+    "SHULOV": 96,
+}
+
 # Sonar Bangla Express is the network's one all-AC service.
 _PREMIUM_AC_TRAINS = {"787", "788"}
 
@@ -183,3 +240,64 @@ TRAINS = [
     ("Titumir Express", "733", ["Rajshahi", "Natore", "Santahar", "Parbatipur", "Chilahati"], 320, 12),
     ("Kapotaksha Express", "715", ["Khulna", "Jashore", "Ishwardi", "Rajshahi"], 280, 14),
 ]
+
+_AVG_SPEED_KMH = 55
+
+
+def _fmt_minutes(total_minutes):
+    """Minutes-of-day, wrapped, as HH:MM."""
+    total_minutes %= 24 * 60
+    return f"{total_minutes // 60:02d}:{total_minutes % 60:02d}"
+
+
+def _haversine_km(name_a, name_b):
+    """Great-circle distance between two STATIONS entries, in km."""
+    from math import atan2, cos, radians, sin, sqrt
+
+    lat1, lon1 = STATIONS[name_a]
+    lat2, lon2 = STATIONS[name_b]
+    earth_radius_km = 6371
+    p1, p2 = radians(lat1), radians(lat2)
+    d_lat = radians(lat2 - lat1)
+    d_lon = radians(lon2 - lon1)
+    a = sin(d_lat / 2) ** 2 + cos(p1) * cos(p2) * sin(d_lon / 2) ** 2
+    return 2 * earth_radius_km * atan2(sqrt(a), sqrt(1 - a))
+
+
+def build_stops(route, distance_km, number):
+    """Per-stop (station, cumulative_km, arrival, departure) along a route.
+
+    Distance between consecutive stops is real - haversine over the same
+    coordinates STATIONS already carries for the map - scaled so the total
+    matches the train's own distance_km. Times assume a ~55 km/h running
+    speed plus a short dwell at each intermediate halt; the origin's own
+    departure is spread across the day from the train's own number, so
+    re-seeding produces the same schedule rather than a new random one each
+    time. Representative, like the rest of this file - not lifted from an
+    official timetable (see the README).
+    """
+    raw = [0.0]
+    for a, b in zip(route, route[1:]):
+        raw.append(raw[-1] + _haversine_km(a, b))
+    scale = distance_km / (raw[-1] or 1)
+    cumulative = [round(km * scale, 1) for km in raw]
+
+    minutes = (int(number) * 37) % (24 * 60)
+    stops = []
+    for i, station in enumerate(route):
+        if i == 0:
+            arrival = None
+        else:
+            leg_km = cumulative[i] - cumulative[i - 1]
+            minutes += round(leg_km / _AVG_SPEED_KMH * 60)
+            arrival = _fmt_minutes(minutes)
+
+        if i == len(route) - 1:
+            departure = None
+        else:
+            if i > 0:
+                minutes += 5 + (i % 3) * 2  # 5-9 min dwell at a mid-route halt
+            departure = _fmt_minutes(minutes)
+
+        stops.append((station, cumulative[i], arrival, departure))
+    return stops

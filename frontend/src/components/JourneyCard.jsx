@@ -1,17 +1,41 @@
+import { useState } from 'react'
+
 import StatusBadge from './StatusBadge'
 import { IconTrain } from './icons'
+import { cancelBooking } from '../api/client'
 
 /**
  * One booked journey.
  *
  * When a train is delayed the scheduled time is struck through and the new
  * expected time is shown beside it, so the passenger sees both at once.
+ * A cancelled ticket stays visible (booking history), just dimmed and with
+ * its own badge instead of the agent-driven on-time/at-risk/delayed one.
+ *
+ * @param {{ journey: object, onCancelled?: () => void }} props
  */
-function JourneyCard({ journey }) {
+function JourneyCard({ journey, onCancelled }) {
   const isLate = journey.status === 'delayed'
+  const isCancelled = journey.bookingStatus === 'cancelled'
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState(null)
+
+  async function handleCancel() {
+    setCancelling(true)
+    setCancelError(null)
+    try {
+      await cancelBooking(journey.bookingId)
+      onCancelled?.()
+    } catch (err) {
+      setCancelError(err.message)
+      setCancelling(false)
+    }
+  }
 
   return (
-    <article className={`journey-card journey-${journey.status}`}>
+    <article
+      className={`journey-card journey-${journey.status} ${isCancelled ? 'journey-cancelled' : ''}`}
+    >
       <div className="journey-top">
         <div className="journey-head">
           <span className="journey-icon" aria-hidden="true">
@@ -27,7 +51,11 @@ function JourneyCard({ journey }) {
             </p>
           </div>
         </div>
-        <StatusBadge status={journey.status} />
+        {isCancelled ? (
+          <span className="badge badge-cancelled">Cancelled</span>
+        ) : (
+          <StatusBadge status={journey.status} />
+        )}
       </div>
 
       <dl className="journey-facts">
@@ -50,12 +78,24 @@ function JourneyCard({ journey }) {
         </div>
         <div>
           <dt>Platform</dt>
-          <dd>{journey.platform}</dd>
+          <dd>{journey.platform ?? '—'}</dd>
         </div>
         <div>
           <dt>Coach / Seat</dt>
           <dd>{journey.coach}</dd>
         </div>
+        {journey.pnr && (
+          <div>
+            <dt>PNR</dt>
+            <dd>{journey.pnr}</dd>
+          </div>
+        )}
+        {journey.passengerCount > 1 && (
+          <div>
+            <dt>Passengers</dt>
+            <dd>{journey.passengerCount}</dd>
+          </div>
+        )}
       </dl>
 
       {isLate && (
@@ -67,6 +107,20 @@ function JourneyCard({ journey }) {
           <span className="agent-note-label">RailBot</span>
           {journey.agentNote}
         </p>
+      )}
+
+      {!isCancelled && journey.bookingStatus === 'confirmed' && journey.bookingId && (
+        <div className="journey-actions">
+          {cancelError && <span className="form-hint form-hint-error">{cancelError}</span>}
+          <button
+            type="button"
+            className="run-button run-button-danger"
+            onClick={handleCancel}
+            disabled={cancelling}
+          >
+            {cancelling ? 'Cancelling…' : 'Cancel Ticket'}
+          </button>
+        </div>
       )}
     </article>
   )

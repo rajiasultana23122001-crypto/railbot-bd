@@ -18,6 +18,7 @@ from core.models import (
     Profile,
     Station,
     Train,
+    TrainStop,
 )
 
 PASSWORD = "test-pass-123"
@@ -33,7 +34,31 @@ def make_train(number="701", name="Subarna Express", halts=8, distance=320):
         scheduled_halts=halts,
         route=["Dhaka (Kamalapur)", "Cumilla", "Chattogram"],
         seat_classes=["SHOVAN", "SNIGDHA"],
+        seat_capacity={"SHOVAN": 2, "SNIGDHA": 2},
     )
+
+
+def make_train_stop(train, station, sequence, distance_km=0, arrival=None, departure=None):
+    return TrainStop.objects.create(
+        train=train,
+        station=station,
+        sequence=sequence,
+        distance_km=distance_km,
+        arrival=arrival,
+        departure=departure,
+    )
+
+
+def make_booked_route(number="701", name="Subarna Express", distance=320):
+    """A train with two stops and stations to search/book between - the
+    minimum a booking test needs, since make_train alone has no TrainStops.
+    """
+    train = make_train(number=number, name=name, distance=distance)
+    origin = Station.objects.create(name="Dhaka (Kamalapur)", code="DHKA")
+    destination = Station.objects.create(name="Chattogram", code="CTG")
+    make_train_stop(train, origin, sequence=0, distance_km=0, departure="07:00")
+    make_train_stop(train, destination, sequence=1, distance_km=distance, arrival="12:00")
+    return train, origin, destination
 
 
 def make_booking(train, passenger, **overrides):

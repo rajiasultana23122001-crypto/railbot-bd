@@ -81,9 +81,9 @@ class ManagerAgent(BaseAgent):
         """
         return [
             booking
-            for booking in Booking.objects.filter(status="delayed").select_related(
-                "train", "passenger"
-            )
+            for booking in Booking.objects.filter(status="delayed")
+            .exclude(booking_status="cancelled")
+            .select_related("train", "passenger")
             if booking.notified_departure != booking.expected_departure
         ]
 

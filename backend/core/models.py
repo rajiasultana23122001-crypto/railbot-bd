@@ -4,8 +4,21 @@ The shapes here mirror what the React dashboards already consume, so the
 frontend needs no changes.
 """
 
+import random
+import string
+
 from django.conf import settings
 from django.db import models
+
+
+def generate_pnr():
+    """A booking reference in the same shape a real one takes: BR + 8
+    alphanumerics. Collisions are astronomically unlikely at this length,
+    but callers still retry on IntegrityError rather than trust that alone
+    (see views.create_booking).
+    """
+    body = "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    return f"BR{body}"
 
 
 class Train(models.Model):
@@ -30,6 +43,13 @@ class Train(models.Model):
     # this train's own distance_km, so a fare never has to be kept in sync by
     # hand.
     seat_classes = models.JSONField(default=list, blank=True)
+
+    # Total seats sold per class, e.g. {"SNIGDHA": 60, "SHOVAN": 88, ...} -
+    # keyed the same as seat_classes. How many are still free for a given
+    # date is never stored here; it is counted live off confirmed Bookings
+    # (see views.available_seats), so this number never has to be kept in
+    # sync by hand either.
+    seat_capacity = models.JSONField(default=dict, blank=True)
 
     def to_dict(self):
         """Full route and fare info, for the passenger-facing train browser."""
@@ -56,6 +76,37 @@ class Train(models.Model):
 
     def __str__(self):
         return f"{self.name} #{self.number}"
+
+
+class TrainStop(models.Model):
+    """One station a train calls at, in the order it calls there.
+
+    What makes "search between any two stops on this line" possible - a
+    booking's own scheduled_departure is read off the `departure` of the
+    stop the passenger boards at, and its fare is priced off the distance
+    between two stops, not the train's whole route. arrival is null at the
+    first stop and departure is null at the last, matching how a train has
+    nowhere to arrive from and nowhere left to depart to at its own ends.
+    """
+
+    train = models.ForeignKey(Train, on_delete=models.CASCADE, related_name="stops")
+    station = models.ForeignKey(
+        "Station", on_delete=models.CASCADE, related_name="train_stops"
+    )
+    sequence = models.IntegerField()
+    arrival = models.CharField(max_length=5, null=True, blank=True)
+    departure = models.CharField(max_length=5, null=True, blank=True)
+
+    # Cumulative distance from the train's origin, in km. Used to price a
+    # partial-route booking off the actual leg travelled rather than the
+    # train's full-route distance_km.
+    distance_km = models.FloatField(default=0)
+
+    class Meta:
+        ordering = ["train", "sequence"]
+
+    def __str__(self):
+        return f"{self.train.number} stop {self.sequence}: {self.station.name}"
 
 
 class Passenger(models.Model):
@@ -220,6 +271,43 @@ class Booking(models.Model):
 
     status = models.CharField(max_length=10, default="on-time")
 
+    # Ticket identity and self-service booking detail below. Deliberately
+    # not merged with `status` above: that field is the agents' delay state
+    # (on-time/at-risk/delayed) and this one is the ticket's own lifecycle
+    # (confirmed/cancelled) - conflating them would let a cancellation read
+    # as a delay state or vice versa.
+    #
+    # pnr is nullable only because the field was added to a table that
+    # already had rows (see the migration) - every booking gets a real one
+    # at creation time, seeded or self-service, so it is never actually
+    # blank after `manage.py seed`.
+    pnr = models.CharField(max_length=12, unique=True, null=True, blank=True)
+    booking_status = models.CharField(max_length=10, default="confirmed")
+
+    seat_class = models.CharField(max_length=10, null=True, blank=True)
+    seat_numbers = models.JSONField(default=list, blank=True)
+    passenger_count = models.IntegerField(default=1)
+    fare_paid = models.IntegerField(default=0)
+
+    # Set only when a self-service booking boards or alights somewhere other
+    # than the train's own origin/destination. to_dict() falls back to
+    # train.origin/train.destination when these are null, which is every
+    # seeded booking and every full-route booking.
+    origin_station = models.ForeignKey(
+        "Station",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    destination_station = models.ForeignKey(
+        "Station",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+
     # The delay as first reported. It stays put so the Scheduler Agent always
     # sizes its recovery budget against the original slip rather than against
     # a figure it has already improved.
@@ -241,13 +329,24 @@ class Booking(models.Model):
         return max(self.delay_minutes - self.recovered_minutes, 0)
 
     def to_dict(self):
-        """Serialise into the shape the Passenger Dashboard expects."""
+        """Serialise into the shape the Passenger Dashboard expects.
+
+        "id" used to be f"BR-{train.number}", which collided once a
+        passenger could hold two bookings on the same train (impossible
+        before self-service booking existed, routine now) - React was
+        silently reusing one JourneyCard for both. Built off the row's own
+        pk instead, which is unique by construction; bookingId is the same
+        value bare, for API calls (e.g. cancel) that need a plain int.
+        """
         return {
-            "id": f"BR-{self.train.number}",
+            "id": f"BR-{self.id}",
+            "bookingId": self.id,
             "train": self.train.name,
             "trainNo": self.train.number,
-            "from": self.train.origin,
-            "to": self.train.destination,
+            "from": self.origin_station.name if self.origin_station_id else self.train.origin,
+            "to": self.destination_station.name
+            if self.destination_station_id
+            else self.train.destination,
             "date": self.travel_date,
             "scheduledDeparture": self.scheduled_departure,
             "expectedDeparture": self.expected_departure,
@@ -256,24 +355,71 @@ class Booking(models.Model):
             "status": self.status,
             "delayMinutes": self.current_delay,
             "agentNote": self.agent_note,
+            "pnr": self.pnr,
+            "bookingStatus": self.booking_status,
+            "seatClass": self.seat_class,
+            "seatNumbers": self.seat_numbers,
+            "passengerCount": self.passenger_count,
+            "farePaid": self.fare_paid,
         }
 
     def __str__(self):
         return f"{self.train.name} for {self.passenger.name}"
 
 
+class BookingPassenger(models.Model):
+    """One traveller on one seat of a Booking.
+
+    Kept separate from Passenger above on purpose: Passenger is one row per
+    phone number - the account the Manager Agent calls - while a single
+    booking can carry several people travelling together, each with their
+    own seat and (optional) ID. Nothing here is read by the agents; it only
+    ever surfaces on the ticket itself.
+    """
+
+    booking = models.ForeignKey(
+        Booking, on_delete=models.CASCADE, related_name="passengers_detail"
+    )
+    name = models.CharField(max_length=80)
+    age = models.IntegerField(null=True, blank=True)
+    id_number = models.CharField(max_length=30, null=True, blank=True)
+    seat_number = models.CharField(max_length=20, blank=True)
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "age": self.age,
+            "idNumber": self.id_number,
+            "seatNumber": self.seat_number,
+        }
+
+    def __str__(self):
+        return f"{self.name} ({self.seat_number})"
+
+
 class Station(models.Model):
-    """A station the Resource Agent watches."""
+    """A station - both what the Resource Agent watches for crowding and
+    what the booking search picks From/To from.
+
+    Only a handful of stations carry Platforms and get watched for crowding
+    (see seed.py); every station in the network gets a row here regardless,
+    since the booking flow needs the full list to search between any two of
+    them. capacity/passengers_on_site are null on a station nothing is
+    monitoring - the Resource Agent only ever iterates Platform objects, so
+    a station with no platforms is simply never asked about.
+    """
 
     name = models.CharField(max_length=80)
     code = models.CharField(max_length=10, unique=True)
+    division = models.CharField(max_length=40, null=True, blank=True)
     passengers_on_site = models.IntegerField(default=0)
-    capacity = models.IntegerField()
+    capacity = models.IntegerField(null=True, blank=True)
 
     def to_dict(self):
         return {
             "name": self.name,
             "code": self.code,
+            "division": self.division,
             "passengersOnSite": self.passengers_on_site,
             "capacity": self.capacity,
         }
