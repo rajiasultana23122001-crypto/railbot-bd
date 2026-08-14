@@ -12,8 +12,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from .agents import run_cycle
-from .agents.scheduler_agent import add_minutes, sync_arrivals
+from .facade import DelayReportError, RailBotFacade
 from .auth import any_role_required, authority_required, passenger_required
 from .data.network import SEAT_CLASSES
 from .models import (
@@ -145,96 +144,33 @@ def report_delay(request):
     This is the operator-facing entry point: a station master enters what has
     happened, and the agents work out what to do about it. Authority-only,
     same reasoning as `station` above.
+
+    The sequence itself - validate, mark every booking, keep the arrivals
+    board in step, run the five agents in order, and read the reported figures
+    before the Scheduler moves them - lives in RailBotFacade. It has to happen
+    in that order, and a view is the wrong place to be the only thing that
+    knows it: a management command or an operations feed reporting a delay
+    would otherwise have to reimplement it or go through HTTP to reach it.
     """
     try:
         payload = json.loads(request.body or b"{}")
     except json.JSONDecodeError:
         return JsonResponse({"error": "Body must be JSON."}, status=400)
 
-    train_no = str(payload.get("trainNo") or "").strip()
-    raw_minutes = payload.get("minutes")
-
-    if not train_no:
-        return JsonResponse({"error": "Pick a train first."}, status=400)
-
-    # bool is a subclass of int in Python, so int(True) is 1 - a checkbox
-    # posted into this field would otherwise book a one-minute delay.
-    if isinstance(raw_minutes, bool):
-        return JsonResponse(
-            {"error": "Delay must be a whole number of minutes."}, status=400
-        )
-
     try:
-        minutes = int(raw_minutes)
-    except (TypeError, ValueError):
-        return JsonResponse(
-            {"error": "Delay must be a whole number of minutes."}, status=400
+        result = RailBotFacade.report_delay(
+            payload.get("trainNo"), payload.get("minutes")
         )
-
-    if not 1 <= minutes <= 300:
-        return JsonResponse(
-            {"error": "Delay must be between 1 and 300 minutes."}, status=400
-        )
-
-    # Both halves of this matter, and they came from different branches: every
-    # booking on the train rather than just the first (a delay is a fact about
-    # the train, and .first() left the second passenger untold), and cancelled
-    # tickets left out (nobody is waiting on a train they cancelled).
-    bookings = list(
-        Booking.objects.select_related("train")
-        .filter(train__number=train_no)
-        .exclude(booking_status="cancelled")
-    )
-    if not bookings:
-        return JsonResponse(
-            {"error": f"No booked journey on train {train_no}."}, status=404
-        )
-
-    # Record the delay as freshly reported: nothing recovered yet, and the
-    # passenger has not been told, so the agents have work to do. A delay is
-    # a fact about the train, so every booking aboard it is updated - the
-    # Manager Agent selects on status, and would never see a passenger this
-    # loop skipped.
-    for booking in bookings:
-        booking.status = "delayed"
-        booking.delay_minutes = minutes
-        booking.recovered_minutes = 0
-        booking.expected_departure = add_minutes(booking.scheduled_departure, minutes)
-        booking.notified_departure = None
-        booking.agent_note = None
-        booking.save()
-        sync_arrivals(booking)
-
-    # The confirmation below is about the train, so any booking will do.
-    booking = bookings[0]
-
-    # Read these before the agents run: afterwards expected_departure has
-    # already been pulled earlier by the Scheduler, and reporting that back as
-    # "the delay you entered" would not add up.
-    train_name = booking.train.name
-    scheduled = booking.scheduled_departure
-    departure_after_delay = booking.expected_departure
-
-    try:
-        results = run_cycle()
+    except DelayReportError as exc:
+        # The facade decides both the message and the status - a bad train
+        # number is a 404, a bad minutes value is a 400 - so the view does not
+        # hold a second copy of that mapping.
+        return JsonResponse({"error": exc.message}, status=exc.status)
     except FileNotFoundError as exc:
+        # The Risk Agent's model has not been trained yet.
         return JsonResponse({"error": str(exc)}, status=503)
 
-    booking.refresh_from_db()
-
-    return JsonResponse(
-        {
-            "reported": {
-                "train": train_name,
-                "minutes": minutes,
-                "scheduledDeparture": scheduled,
-                "departureAfterDelay": departure_after_delay,
-            },
-            "settledDeparture": booking.expected_departure,
-            "ranAt": datetime.now().strftime("%H:%M"),
-            "results": results,
-        }
-    )
+    return JsonResponse(result)
 
 
 @csrf_exempt
@@ -248,14 +184,10 @@ def run_agents(request):
     demand is an operator action, not a passenger one.
     """
     try:
-        results = run_cycle()
+        return JsonResponse(RailBotFacade.run_agent_cycle())
     except FileNotFoundError as exc:
         # The Risk Agent's model has not been trained yet.
         return JsonResponse({"error": str(exc)}, status=503)
-
-    return JsonResponse(
-        {"ranAt": datetime.now().strftime("%H:%M"), "results": results}
-    )
 
 
 # ---------------- Booking ----------------
