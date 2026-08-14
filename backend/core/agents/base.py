@@ -13,8 +13,6 @@ reasoning, and every action it takes lands in the audit trail.
 
 from datetime import datetime
 
-from core.models import AgentLog
-
 
 def clock():
     """Current time as HH:MM, the format the dashboards display."""
@@ -46,10 +44,21 @@ class BaseAgent:
         return {"agent": self.name, **result}
 
     def log(self, message, severity="info"):
-        """Write one line into the audit trail the Advisor Agent reads."""
-        return AgentLog.objects.create(
-            agent=self.name,
-            severity=severity,
-            message=message,
-            logged_at=clock(),
+        """Announce something this agent did.
+
+        The audit trail the Advisor Agent reads is one observer of this, and
+        used to be the whole of it. Publishing instead of writing means
+        anything else that cares - operator paging, a live dashboard - can
+        subscribe without another line being added here.
+
+        Still returns the AgentLog row, so every existing caller is
+        unaffected by the change.
+        """
+        # Imported here rather than at module scope: core.events imports
+        # models lazily for the same reason, and keeping the import local
+        # avoids a cycle between agents and events at startup.
+        from core.events import AgentEvent, agent_events
+
+        return agent_events.publish(
+            AgentEvent(agent=self.name, message=message, severity=severity)
         )
