@@ -11,6 +11,7 @@ in reason() below, with or without a key - see core.services.gemini for why
 the model is kept away from operational decisions.
 """
 
+import re
 from collections import Counter
 
 from core.models import AgentLog, Booking, Platform
@@ -48,11 +49,15 @@ class AdvisorAgent(BaseAgent):
         # Platforms named repeatedly in crowding alerts.
         crowded = Counter()
         for platform in observation["platforms"]:
+           # Word boundary, not a substring test: "Platform 1" is a
+            # substring of "Platform 10", so a plain `in` credits platform 1
+            # with every alert raised about 10, 11 or 12.
+            pattern = rf"Platform {re.escape(platform.number)}\b"
             mentions = sum(
                 1
                 for log in logs
                 if log.agent == "Resource Agent"
-                and f"Platform {platform.number}" in log.message
+                and re.search(pattern, log.message)
             )
             if mentions >= REPEAT_ALERT_THRESHOLD:
                 crowded[platform.number] = mentions

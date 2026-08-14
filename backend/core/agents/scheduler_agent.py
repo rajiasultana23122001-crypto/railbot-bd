@@ -4,7 +4,7 @@ Observes delayed journeys, reasons about how much can be recovered by trimming
 halts at minor stations, and rewrites the expected departure accordingly.
 """
 
-from core.models import Booking
+from core.models import Arrival, Booking
 
 from .base import BaseAgent
 
@@ -22,6 +22,21 @@ def add_minutes(hhmm, minutes):
     hours, mins = (int(part) for part in hhmm.split(":"))
     total = (hours * 60 + mins + minutes) % (24 * 60)
     return f"{total // 60:02d}:{total % 60:02d}"
+def sync_arrivals(booking):
+    """Copy a booking's delay onto the arrivals board for the same train.
+
+    Arrival is what the Station Master Panel prints, and it is a separate
+    row from the Booking a passenger sees. Leaving it alone means the two
+    halves of the same screen disagree about the same train - the panel
+    showing on-time beside a delay alert about it.
+
+    Called from both places a departure time moves: the initial report, and
+    the Scheduler clawing time back afterwards.
+    """
+    Arrival.objects.filter(train=booking.train).update(
+        expected=booking.expected_departure,
+        status=booking.status,
+    )
 
 
 class SchedulerAgent(BaseAgent):
@@ -68,6 +83,7 @@ class SchedulerAgent(BaseAgent):
             )
             booking.recovered_minutes += recovered
             booking.save()
+            sync_arrivals(booking)
 
             self.log(
                 f"{booking.train.name} delayed. Halts trimmed at minor stations; "
