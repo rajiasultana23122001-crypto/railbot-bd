@@ -1,71 +1,43 @@
 """Manager Agent - tells passengers about delays without being asked.
 
 Observes journeys that have slipped, reasons about what each passenger needs
-to hear, and sends the text. send_sms() is the only function that talks to
-sms.net.bd - everything that decides who to message and what to say stays
-exactly as it was when this used to place a (simulated) voice call.
+to hear, and sends the text.
+
+Two things this agent deliberately does not know: how a message reaches a
+handset, and how a message is worded. The first is a MessageGateway
+(core.services.gateways), the second a NotificationStrategy
+(core.services.message_strategy). Adding a channel or a new kind of notice
+is a new class in one of those modules, not another branch in here.
 """
 
-import os
-import re
-
-import requests
-
 from core.models import Booking
+from core.services.gateways import SmsNetBdAdapter, default_gateway
+from core.services.message_strategy import strategy_for
 
 from .base import BaseAgent
-
-SMS_NET_BD_ENDPOINT = "https://api.sms.net.bd/sendsms"
 
 
 def normalize_bd_phone(phone):
     """Reduce a stored phone number to sms.net.bd's expected shape.
 
-    Accepts the messy forms a phone number might actually be stored in -
-    "+8801700000000", "880 1700-000000", "01700000000" - and returns the
-    880-prefixed, digits-only form (e.g. "8801700000000"). sms.net.bd also
-    accepts the bare 01X form, but standardising on one shape here means
-    nothing downstream has to branch on which one it got.
+    Kept as a module-level name because callers and tests import it. The
+    translation itself now lives with the adapter that needs it.
     """
-    digits = re.sub(r"\D", "", phone or "")
-    if digits.startswith("880"):
-        return digits
-    if digits.startswith("0"):
-        return "880" + digits[1:]
-    # A 10-digit local number with no leading 0 at all - uncommon, but cheap
-    # to handle rather than send it upstream to be silently rejected.
-    if len(digits) == 10:
-        return "880" + digits
-    return digits
+    return SmsNetBdAdapter.normalize(phone)
 
 
-def send_sms(phone, message):
-    """Send one SMS through sms.net.bd.
+def send_sms(phone, message, gateway=None):
+    """Send one SMS through whichever gateway is configured.
 
-    Simulated unless SMS_NET_BD_API_KEY is set, matching how the Twilio
-    voice call this replaced used to behave without credentials. Returns
-    (sent, detail) rather than raising - detail is a short string for the
-    audit trail either way, and `sent` is what act() uses to decide whether
-    to mark this passenger as notified or leave it for the next cycle to
-    retry.
+    Returns (sent, detail) rather than raising - detail is a short string for
+    the audit trail either way, and `sent` is what act() uses to decide
+    whether to mark this passenger as notified or leave it for the next cycle
+    to retry.
+
+    Kept as a module-level function, rather than folded into the agent, so
+    that the existing tests patching this name still work.
     """
-    to = normalize_bd_phone(phone)
-    api_key = os.environ.get("SMS_NET_BD_API_KEY")
-
-    if not api_key:
-        return True, f"simulated SMS to {to}"
-
-    try:
-        response = requests.get(
-            SMS_NET_BD_ENDPOINT,
-            params={"api_key": api_key, "msg": message, "to": to},
-            timeout=10,
-        )
-        response.raise_for_status()
-    except requests.RequestException as exc:
-        return False, f"SMS to {to} failed: {exc}"
-
-    return True, f"SMS sent to {to}"
+    return (gateway or default_gateway()).send(phone, message)
 
 
 class ManagerAgent(BaseAgent):
@@ -90,28 +62,19 @@ class ManagerAgent(BaseAgent):
     def reason(self, observation):
         """Compose what each passenger should be texted.
 
-        Kept short on purpose - this is an SMS, not the spoken script it
-        replaced, and a long message risks splitting across multiple
-        segments for no benefit.
+        The wording is a strategy chosen from what the passenger currently
+        holds - first news, or a correction to a time that has moved. This
+        method picks one and asks it; it does not know how either is worded.
         """
         decisions = []
         for booking in observation:
-            # A passenger who was already texted a time is being corrected,
-            # not told for the first time, and the message should say so.
-            is_update = booking.notified_departure is not None
-
-            opening = (
-                "RailBot: updated delay for"
-                if is_update
-                else "RailBot: your train"
-            )
-            message = (
-                f"{opening} {booking.train.name} to {booking.train.destination} - "
-                f"now {booking.current_delay} min late, departs "
-                f"{booking.expected_departure} from platform {booking.platform}."
-            )
+            strategy = strategy_for(booking)
             decisions.append(
-                {"booking": booking, "message": message, "isUpdate": is_update}
+                {
+                    "booking": booking,
+                    "message": strategy.compose_sms(booking),
+                    "strategy": strategy,
+                }
             )
         return decisions
 
@@ -126,6 +89,7 @@ class ManagerAgent(BaseAgent):
 
         for item in decision:
             booking = item["booking"]
+            strategy = item["strategy"]
             passenger = booking.passenger
 
             sent, outcome = send_sms(passenger.phone, item["message"])
@@ -141,22 +105,13 @@ class ManagerAgent(BaseAgent):
             # Remember what was said, so the next cycle knows whether this
             # passenger still holds the right time.
             booking.notified_departure = booking.expected_departure
-
-            booking.agent_note = (
-                "Manager Agent texted you the updated departure time. "
-                if item["isUpdate"]
-                else f"Manager Agent texted you about the "
-                f"{booking.current_delay} minute delay. "
-            ) + (
-                f"Your train now departs at {booking.expected_departure} "
-                f"from platform {booking.platform}."
-            )
+            booking.agent_note = strategy.compose_note(booking)
             booking.save()
 
-            kind = "Updated time" if item["isUpdate"] else "Delay notice"
             self.log(
-                f"{kind} texted to {passenger.name} for {booking.train.name} - "
-                f"now departing {booking.expected_departure} ({outcome}).",
+                f"{strategy.log_label} texted to {passenger.name} for "
+                f"{booking.train.name} - now departing "
+                f"{booking.expected_departure} ({outcome}).",
                 severity="info",
             )
             called.append(
