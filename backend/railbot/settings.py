@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -161,6 +162,16 @@ LOGGING = {
         'core.scheduler': {
             'handlers': ['console'],
             'level': 'INFO',
+            'propagate': False,
+        },
+        'core.events': {
+            'handlers': ['console'],
+            'level': 'CRITICAL' if 'test' in sys.argv else 'WARNING',
+            'propagate': False,
+        },
+        'core.agents': {
+            'handlers': ['console'],
+            'level': 'CRITICAL' if 'test' in sys.argv else 'WARNING',
             'propagate': False,
         },
     },
