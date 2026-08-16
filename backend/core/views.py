@@ -383,6 +383,19 @@ def create_booking(request):
             if not Booking.objects.filter(pnr=pnr).exists():
                 break
             pnr = generate_pnr()
+        else:
+            # Every attempt collided. Vanishingly unlikely at today's
+            # booking volume, but creating the row anyway would hit the
+            # database's unique constraint and surface as an unhandled
+            # 500 — this way the caller gets the same kind of JSON error
+            # every other failure on this endpoint already returns.
+            return JsonResponse(
+                {
+                    "error": "Could not generate a unique ticket reference. "
+                    "Please try again."
+                },
+                status=503,
+            )
 
         booking = Booking.objects.create(
             train=train,
