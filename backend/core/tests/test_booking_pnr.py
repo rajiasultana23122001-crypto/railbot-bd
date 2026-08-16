@@ -83,7 +83,8 @@ class BookingPnrCollisionTests(TestCase):
             response = self.post_booking()
 
         self.assertEqual(response.status_code, 503)
-        self.assertIn("try again", response.json()["error"].lower())
+        body = json.loads(response.content)
+        self.assertIn("try again", body["error"].lower())
 
     def test_a_booking_is_never_created_with_a_duplicate_pnr(self):
         """Whatever the endpoint does when retries are exhausted, the one
