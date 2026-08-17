@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="24.7.17">
+  <diagram id="comm" name="Communication Diagram - Run Scheduled Cycle">
+    <mxGraphModel dx="1160" dy="960" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1160" pageHeight="960" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="sched" value=":BackgroundScheduler" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="380" width="200" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="cycle" value=":AgentCycle" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="380" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="risk" value=":RiskAgent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="60" width="170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="schedag" value=":SchedulerAgent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="210" width="170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="mgr" value=":ManagerAgent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="380" width="170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="res" value=":ResourceAgent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="550" width="170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="adv" value=":AdvisorAgent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="620" y="700" width="170" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="model" value=":RiskModel" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="20" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="booking" value=":Booking" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="210" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="sms" value=":SmsGateway" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="400" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="platform" value=":Platform" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="550" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="gem" value=":GeminiService" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="700" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="log" value=":AgentLog" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="850" width="160" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="lk0" value="*1: runCycleJob()" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="sched" target="cycle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk1" value="1.1: run()" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="cycle" target="risk">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk2" value="1.2: run()" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="cycle" target="schedag">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk3" value="1.3: run()" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="cycle" target="mgr">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk4" value="1.4: run()" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="cycle" target="res">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk5" value="1.5: run()" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="cycle" target="adv">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk6" value="1.1.1: findNotDelayed()&amp;#10;1.1.3: setStatus(at-risk | on-time)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="risk" target="booking">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk7" value="1.1.2: predictProbability(features)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="risk" target="model">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk8" value="1.1.4: log(observation, reasoning, action)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="risk" target="log">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk9" value="1.2.1: findDelayed()&amp;#10;1.2.2: setExpectedDeparture(time, recovered)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="schedag" target="booking">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk10" value="1.2.3: log(...)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="schedag" target="log">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk11" value="1.3.1: findNotifiableDelayed()&amp;#10;1.3.3: [sent] recordNotified(time)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="mgr" target="booking">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk12" value="1.3.2: sendSms(phone, message)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="mgr" target="sms">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk13" value="1.3.4: log(sent or failed)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="mgr" target="log">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk14" value="1.4.1: readOccupancy()&amp;#10;1.4.2: [level changed] setAlertLevel(level)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="res" target="platform">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk15" value="1.4.3: [level changed] log(...)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="res" target="log">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk16" value="1.5.1: readRecent()&amp;#10;1.5.3: log(briefing)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="adv" target="log">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lk17" value="1.5.2: writeBriefing(facts)" style="endArrow=none;html=1;strokeColor=#333333;fontSize=10;align=center;verticalAlign=middle;" edge="1" parent="1" source="adv" target="gem">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="title" value="Communication Diagram — UC-17 Run Scheduled Cycle" style="text;html=1;fontSize=15;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="60" y="10" width="620" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="Reading the numbering&amp;#10;1 is the whole cycle. 1.1 to 1.5 are the five agents,&amp;#10;in the order they must run. 1.1.1 onwards happen&amp;#10;inside that agent&#x27;s own Observe-Reason-Act pass.&amp;#10;* marks the message that repeats every interval.&amp;#10;[guards] in square brackets before the name." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#f9f9f9;strokeColor=#cccccc;fontSize=10;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="60" y="620" width="320" height="110" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
