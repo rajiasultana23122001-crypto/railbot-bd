@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="24.7.17">
+  <diagram id="seq-signup" name="Sequence Diagram — UC-01/UC-02 Passenger Registration and Verification">
+    <mxGraphModel dx="1700" dy="1474" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1474" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="vis" value="Visitor" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=40;" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="150" height="1314" as="geometry" />
+        </mxCell>
+        <mxCell id="form" value=":SignupForm" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=40;" vertex="1" parent="1">
+          <mxGeometry x="250" y="60" width="150" height="1314" as="geometry" />
+        </mxCell>
+        <mxCell id="auth" value=":AuthController" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=40;" vertex="1" parent="1">
+          <mxGeometry x="440" y="60" width="150" height="1314" as="geometry" />
+        </mxCell>
+        <mxCell id="user" value=":User" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=40;" vertex="1" parent="1">
+          <mxGeometry x="630" y="60" width="150" height="1314" as="geometry" />
+        </mxCell>
+        <mxCell id="prof" value=":Profile" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=40;" vertex="1" parent="1">
+          <mxGeometry x="820" y="60" width="150" height="1314" as="geometry" />
+        </mxCell>
+        <mxCell id="pass" value=":Passenger" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=40;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="60" width="150" height="1314" as="geometry" />
+        </mxCell>
+        <mxCell id="tw" value=":TwilioVerify" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=40;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="60" width="150" height="1314" as="geometry" />
+        </mxCell>
+        <mxCell id="tok" value=":Token" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=40;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="60" width="150" height="1314" as="geometry" />
+        </mxCell>
+        <mxCell id="frag0" value="atomic transaction" style="shape=umlFrame;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;width=70;height=26;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="415" y="298" width="580" height="336" as="geometry" />
+        </mxCell>
+        <mxCell id="frag1" value="alt  [code approved / rejected]" style="shape=umlFrame;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;width=70;height=26;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="415" y="928" width="1150" height="294" as="geometry" />
+        </mxCell>
+        <mxCell id="m0" value="1: enterDetails(nid, phone, password)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="135.0" y="170" as="sourcePoint" />
+            <mxPoint x="325.0" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m1" value="2: POST /api/auth/passenger/signup" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="325.0" y="212" as="sourcePoint" />
+            <mxPoint x="515.0" y="212" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2" value="3: validateNidFormat(nid)  [10 or 17 digits]" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;edgeStyle=orthogonalEdgeStyle;rounded=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="254" as="sourcePoint" />
+            <mxPoint x="515.0" y="288" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="585.0" y="254" />
+              <mxPoint x="585.0" y="288" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3" value="4: existsByPhone(phone)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="310" as="sourcePoint" />
+            <mxPoint x="705.0" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m4" value="5: false" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="705.0" y="352" as="sourcePoint" />
+            <mxPoint x="515.0" y="352" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m5" value="6: existsByNid(nid)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="394" as="sourcePoint" />
+            <mxPoint x="895.0" y="394" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m6" value="7: false" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="895.0" y="436" as="sourcePoint" />
+            <mxPoint x="515.0" y="436" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m7" value="8: create(username=phone, password)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="478" as="sourcePoint" />
+            <mxPoint x="705.0" y="478" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m8" value="9: findUnclaimedByPhone(phone)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="520" as="sourcePoint" />
+            <mxPoint x="1085.0" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m9" value="10: passengerRecord or null" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1085.0" y="562" as="sourcePoint" />
+            <mxPoint x="515.0" y="562" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m10" value="11: create(role=passenger, isPhoneVerified=false)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="604" as="sourcePoint" />
+            <mxPoint x="895.0" y="604" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m11" value="12: startVerification(phone)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="646" as="sourcePoint" />
+            <mxPoint x="1275.0" y="646" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m12" value="13: pending" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1275.0" y="688" as="sourcePoint" />
+            <mxPoint x="515.0" y="688" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m13" value="14: 201 {message: OTP sent}" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="730" as="sourcePoint" />
+            <mxPoint x="325.0" y="730" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m14" value="15: SMS containing the code  [asynchronous]" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1275.0" y="772" as="sourcePoint" />
+            <mxPoint x="135.0" y="772" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m15" value="16: enterCode(code)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="135.0" y="814" as="sourcePoint" />
+            <mxPoint x="325.0" y="814" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m16" value="17: POST /api/auth/passenger/verify-signup" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="325.0" y="856" as="sourcePoint" />
+            <mxPoint x="515.0" y="856" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m17" value="18: checkVerification(phone, code)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="898" as="sourcePoint" />
+            <mxPoint x="1275.0" y="898" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m18" value="19: [approved]" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1275.0" y="940" as="sourcePoint" />
+            <mxPoint x="515.0" y="940" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m19" value="20: setPhoneVerified(true)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="982" as="sourcePoint" />
+            <mxPoint x="895.0" y="982" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m20" value="21: issue(user)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;strokeColor=#333333;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="1024" as="sourcePoint" />
+            <mxPoint x="1465.0" y="1024" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m21" value="22: token" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1465.0" y="1066" as="sourcePoint" />
+            <mxPoint x="515.0" y="1066" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m22" value="23: 200 {token, role: passenger}" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="1108" as="sourcePoint" />
+            <mxPoint x="325.0" y="1108" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m23" value="24: [rejected]" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1275.0" y="1150" as="sourcePoint" />
+            <mxPoint x="515.0" y="1150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m24" value="25: 400 {error}  [account stays unverified]" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="515.0" y="1192" as="sourcePoint" />
+            <mxPoint x="325.0" y="1192" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m25" value="26: dashboard, or the error" style="html=1;verticalAlign=bottom;endArrow=open;endSize=10;dashed=1;strokeColor=#666666;fontSize=11;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="325.0" y="1234" as="sourcePoint" />
+            <mxPoint x="135.0" y="1234" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="title" value="Sequence Diagram — UC-01/UC-02 Passenger Registration and Verification" style="text;html=1;fontSize=15;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="60" y="10" width="700" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
