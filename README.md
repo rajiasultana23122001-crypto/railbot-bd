@@ -347,6 +347,13 @@ role's screen redirects back to your own home rather than showing it -
 enforced again on the backend (see API above), since a frontend redirect
 alone is not access control.
 
+## Documentation
+
+- [Software Requirements Specification](docs/RailBot_BD_SRS.docx) — v1.1, IEEE 830 format
+- [UML diagrams](docs/diagrams/) — use case, sequence (×2), communication, activity, and class diagrams, approved by course faculty
+- [Design patterns applied](backend/PATTERNS.md) — where each pattern lives and why two were rejected
+- [Defect register](backend/BUGS.md) — bugs found by the test suite and how they were fixed
+
 ## Tests
 
 ```
