@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" version="24.7.17">
+  <diagram id="activity" name="Activity Diagram - Report Train Delay">
+    <mxGraphModel dx="1560" dy="2300" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1560" pageHeight="2300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="laneA" value="Station Master" style="swimlane;html=1;startSize=34;horizontal=1;fillColor=none;strokeColor=#666666;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="300" height="2180" as="geometry" />
+        </mxCell>
+        <mxCell id="laneB" value="RailBot BD System" style="swimlane;html=1;startSize=34;horizontal=1;fillColor=none;strokeColor=#666666;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="340" y="60" width="620" height="2180" as="geometry" />
+        </mxCell>
+        <mxCell id="start" value="" style="ellipse;html=1;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="175.0" y="120" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" value="Select train and enter minutes" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80.0" y="190" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" value="Submit delay report" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="80.0" y="280" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="d1" value="Caller holds&amp;#10;authority role?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="495.0" y="370" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="f1" value="Return 401 or 403" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="795.0" y="375" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f1-end" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="855.0" y="440" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" value="Train named?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="495.0" y="500" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="f2" value="Return&amp;#10;&amp;quot;Pick a train first&amp;quot;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="795.0" y="505" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f2-end" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="855.0" y="570" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="d3" value="Minutes a&amp;#10;whole number?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="495.0" y="630" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="f3" value="Return &amp;quot;must be a&amp;#10;whole number&amp;quot;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="795.0" y="635" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f3-end" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="855.0" y="700" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" value="Minutes&amp;#10;between 1 and 300?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="495.0" y="760" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="f4" value="Return the&amp;#10;permitted range" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="795.0" y="765" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f4-end" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="855.0" y="830" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="d5" value="Any booking&amp;#10;on this train?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="495.0" y="890" width="190" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="f5" value="Return 404&amp;#10;naming the train" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="795.0" y="895" width="150" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="f5-end" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="855.0" y="960" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" value="Mark every booking on the train delayed,&amp;#10;advance expected departure,&amp;#10;clear recovery and notification" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440.0" y="1010" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" value="Update the arrivals board for the train" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440.0" y="1110" width="300" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" value="Run Risk Agent —&amp;#10;flag or clear journeys not yet late" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440.0" y="1190" width="300" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="a6" value="Run Scheduler Agent —&amp;#10;recover time, settle expected departure" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440.0" y="1275" width="300" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="d6" value="Any passenger holding&amp;#10;an out-of-date time?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="490.0" y="1370" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="a7" value="Run Manager Agent — send SMS" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="460.0" y="1480" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="d7" value="Send accepted?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="500.0" y="1560" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="f6" value="Log failure at high severity,&amp;#10;leave booking for retry" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="785.0" y="1565" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="a8" value="Record passenger as notified" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="460.0" y="1660" width="260" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="m1" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="570.0" y="1730" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a9" value="Run Resource Agent —&amp;#10;re-classify platform occupancy" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440.0" y="1790" width="300" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="d8" value="Alert level&amp;#10;changed?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="505.0" y="1875" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="a10" value="Record the new alert level and log it" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="785.0" y="1880" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="m2" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="570.0" y="1965" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a11" value="Run Advisor Agent —&amp;#10;read audit trail, assemble facts" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440.0" y="2020" width="300" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="laneC" value="RailBot BD System (continued)" style="swimlane;html=1;startSize=34;horizontal=1;fillColor=none;strokeColor=#666666;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="60" width="480" height="700" as="geometry" />
+        </mxCell>
+        <mxCell id="d9" value="Language model&amp;#10;available and usable?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1140.0" y="130" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="a12" value="Compose briefing&amp;#10;from the model&#x27;s response" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1030.0" y="250" width="200" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="a13" value="Compose the&amp;#10;deterministic briefing" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1250.0" y="250" width="200" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="m3" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1220.0" y="340" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a14" value="Record the briefing in the audit trail" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1100.0" y="400" width="280" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="a15" value="Commit all changes as one transaction" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1100.0" y="475" width="280" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="a16" value="Return reported delay, settled departure,&amp;#10;and each agent&#x27;s result" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1090.0" y="550" width="300" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="a17" value="Refresh both dashboards" style="rounded=1;whiteSpace=wrap;html=1;arcSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1120.0" y="640" width="240" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="end" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="1225.0" y="710" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="fl0" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="start" target="a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl1" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a1" target="a2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl2" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a2" target="d1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl3" value="no" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d1" target="f1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl4" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="f1" target="f1-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl5" value="yes" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d1" target="d2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl6" value="no" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d2" target="f2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl7" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="f2" target="f2-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl8" value="yes" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d2" target="d3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl9" value="no" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d3" target="f3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl10" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="f3" target="f3-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl11" value="yes" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d3" target="d4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl12" value="no" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d4" target="f4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl13" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="f4" target="f4-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl14" value="yes" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d4" target="d5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl15" value="no" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d5" target="f5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl16" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="f5" target="f5-end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl17" value="yes" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d5" target="a3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl18" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a3" target="a4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl19" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a4" target="a5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl20" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a5" target="a6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl21" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a6" target="d6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl22" value="yes" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d6" target="a7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl23" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a7" target="d7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl24" value="no" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d7" target="f6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl25" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="f6" target="m1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl26" value="yes" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d7" target="a8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl27" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a8" target="m1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl28" value="no" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d6" target="m1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl29" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="m1" target="a9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl30" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a9" target="d8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl31" value="yes" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d8" target="a10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl32" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a10" target="m2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl33" value="no" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d8" target="m2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl34" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="m2" target="a11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl35" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a11" target="d9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl36" value="yes" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d9" target="a12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl37" value="no" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="d9" target="a13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl38" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a12" target="m3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl39" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a13" target="m3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl40" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="m3" target="a14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl41" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a14" target="a15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl42" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a15" target="a16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl43" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a16" target="a17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fl44" value="" style="endArrow=block;html=1;strokeColor=#333333;fontSize=10;" edge="1" parent="1" source="a17" target="end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="title" value="Activity Diagram — UC-04 Report Train Delay" style="text;html=1;fontSize=15;fontStyle=1;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="620" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="Every validation gate ends at its own activity final node:&amp;#10;a rejected report changes nothing and does not continue.&amp;#10;Nodes from &amp;quot;Run Risk Agent&amp;quot; onward are one agent cycle,&amp;#10;in fixed order." style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;fillColor=#f9f9f9;strokeColor=#cccccc;fontSize=10;spacingLeft=6;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="790" width="440" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
