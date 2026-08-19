@@ -9,6 +9,7 @@ Authority account is only as trustworthy as the ID it had to present.
 import json
 from datetime import timedelta
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
@@ -123,7 +124,109 @@ class PassengerSignupTests(TestCase):
             with self.subTest(nid=bad):
                 self.assertEqual(self.signup(nid=bad).status_code, 400)
 
+    def test_signup_requires_a_phone_number(self):
+        response = self.client.post(
+            "/api/auth/passenger/signup",
+            data=json.dumps(
+                {
+                    "nid_number": "1234567890",
+                    "password": PASSWORD,
+                }
+            ),
+            content_type="application/json",
+        )
 
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Phone number is required.",
+        )
+
+    def test_signup_requires_a_password(self):
+        response = self.client.post(
+            "/api/auth/passenger/signup",
+            data=json.dumps(
+                {
+                    "phone_number": "+8801711111111",
+                    "nid_number": "1234567890",
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Password is required.",
+        )
+
+    def test_signup_rejects_invalid_json(self):
+        response = self.client.post(
+            "/api/auth/passenger/signup",
+            data="{this is not json}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Body must be JSON.",
+        )
+
+
+class PassengerVerificationTests(TestCase):
+    def test_verification_requires_an_existing_signup(self):
+        response = self.client.post(
+            "/api/auth/passenger/verify-signup",
+            data=json.dumps({
+                "phone_number": "+8801799999999",
+                "code": "000000",
+            }),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            response.json()["error"],
+            "No signup in progress for this number.",
+        )
+
+    def test_verification_rejects_a_wrong_code(self):
+        self.client.post(
+            "/api/auth/passenger/signup",
+            data=json.dumps({
+                "phone_number": "+8801711111111",
+                "nid_number": "1234567890",
+                "password": PASSWORD,
+            }),
+            content_type="application/json",
+        )
+
+        response = self.client.post(
+            "/api/auth/passenger/verify-signup",
+            data=json.dumps({
+                "phone_number": "+8801711111111",
+                "code": "111111",
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Incorrect or expired code.",
+        )
+
+    def test_verification_rejects_invalid_json(self):
+        response = self.client.post(
+            "/api/auth/passenger/verify-signup",
+            data="{this is not json}",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Body must be JSON.",
+        )
 class LoginTests(TestCase):
     def setUp(self):
         self.profile, _ = make_passenger_account("+8801700000000", nid="1010101010")
@@ -156,7 +259,35 @@ class LoginTests(TestCase):
         self.assertNotEqual(first, second)
         self.assertFalse(Token.objects.filter(key=first).exists())
 
+    def test_login_rejects_invalid_json(self):
+        response = self.client.post(
+            "/api/auth/login",
+            data="{this is not json}",
+            content_type="application/json",
+        )
 
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Body must be JSON.",
+        )
+
+    def test_login_refuses_an_account_without_a_profile(self):
+        User.objects.create_user(
+            username="+8801888888888",
+            password=PASSWORD,
+        )
+
+        response = self.post_login(
+            "+8801888888888",
+            PASSWORD,
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            response.json()["error"],
+            "This account has no role set up.",
+        )
 class AuthoritySignupTests(TestCase):
     def setUp(self):
         AuthorityID.objects.create(code="BR-AUTH-1001", note="test batch")
