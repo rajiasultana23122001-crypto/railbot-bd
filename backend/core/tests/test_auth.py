@@ -327,6 +327,67 @@ class AuthoritySignupTests(TestCase):
         self.assertEqual(self.signup().status_code, 201)
         self.assertEqual(self.signup(phone="+8801911111111").status_code, 409)
 
+    def test_authority_signup_requires_a_phone_number(self):
+        response = self.client.post(
+            "/api/auth/authority/signup",
+            data=json.dumps({
+                "authority_id": "BR-AUTH-1001",
+                "password": PASSWORD,
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Phone number is required.",
+        )
+
+    def test_authority_signup_requires_an_authority_id(self):
+        response = self.client.post(
+            "/api/auth/authority/signup",
+            data=json.dumps({
+                "phone_number": "+8801900000000",
+                "password": PASSWORD,
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Authority ID is required.",
+        )
+
+    def test_authority_signup_requires_a_password(self):
+        response = self.client.post(
+            "/api/auth/authority/signup",
+            data=json.dumps({
+                "phone_number": "+8801900000000",
+                "authority_id": "BR-AUTH-1001",
+            }),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Password is required.",
+        )
+
+    def test_authority_signup_rejects_invalid_json(self):
+        response = self.client.post(
+            "/api/auth/authority/signup",
+            data="{this is not json}",
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["error"],
+            "Body must be JSON.",
+        )
+
 
 class OTPServiceTests(TestCase):
     """core.services.otp - the hand-rolled replacement for Twilio Verify.
