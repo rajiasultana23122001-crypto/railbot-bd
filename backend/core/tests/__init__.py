@@ -11,6 +11,10 @@ Split by what is being defended rather than by module:
                       what one report is supposed to change
     test_contract.py  the JSON key names the React dashboards are
                       written against
+    test_availability.py
+                      which seats are free, and that counting them stays
+                      one query per train rather than one per seat class
+    test_health.py    what /api/health tells a deployment check
 
 Most of these were written against bugs this project actually had - the
 Scheduler trimming the same halts on every cycle, the Manager texting the
