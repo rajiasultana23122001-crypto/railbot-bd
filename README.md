@@ -140,6 +140,9 @@ other role gets `403`, no token gets `401`.
 | `GET /api/bookings/<pnr>` | Passenger | One ticket by its PNR |
 | `POST /api/bookings/<id>/cancel` | Passenger | Cancel a booking; its seats become bookable again immediately |
 
+Request and response bodies, and every status code each endpoint can
+answer with, are in the [API reference](docs/API.md).
+
 ## Authentication
 
 Two roles, **Passenger** and **Authority**, each with their own signup and a
@@ -349,6 +352,7 @@ alone is not access control.
 
 ## Documentation
 
+- [API reference](docs/API.md) - request and response bodies, status codes, and what each refusal means
 - [Software Requirements Specification](docs/RailBot_BD_SRS.docx) — v1.1, IEEE 830 format
 - [UML diagrams](docs/diagrams/) — use case, sequence (×2), communication, activity, and class diagrams, approved by course faculty
 - [Design patterns applied](backend/PATTERNS.md) — where each pattern lives and why two were rejected
