@@ -39,20 +39,50 @@ export function clearAuth() {
 }
 
 /**
+ * How long to wait for the API before giving up on a request.
+ *
+ * fetch has no timeout of its own: a backend that accepts the connection
+ * and then never answers - mid-restart, or waiting on Gemini or the SMS
+ * gateway, both of which this API calls while handling a delay report -
+ * leaves the promise pending forever, and the dashboard spins with nothing
+ * to click and nothing to read. Fifteen seconds is well past a healthy
+ * response and well short of a person deciding the page is broken.
+ */
+const REQUEST_TIMEOUT_MS = 15000
+
+/**
  * Fetch a path from the API and return the parsed JSON.
  * Throws with a readable message so the dashboards can show what went wrong.
  * The thrown error also carries `.status`, so a 401/403 can be told apart
  * from any other failure without parsing the message text.
  */
 async function request(path, options) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
   let response
   try {
-    response = await fetch(`${API_BASE}${path}`, options)
-  } catch {
-    // fetch only rejects when the server could not be reached at all.
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      signal: controller.signal,
+    })
+  } catch (error) {
+    // Told apart on purpose: "not running" and "running but not answering"
+    // are different problems, and the second one is the confusing one.
+    if (error.name === 'AbortError') {
+      throw new Error(
+        `The API at ${API_BASE} did not answer within ` +
+          `${REQUEST_TIMEOUT_MS / 1000} seconds. It may still be starting up.`,
+      )
+    }
+    // fetch only rejects otherwise when the server could not be reached.
     throw new Error(
       `Cannot reach the API at ${API_BASE}. Is the Django server running?`,
     )
+  } finally {
+    // Cleared as soon as the headers are in, so the abort cannot fire
+    // partway through reading the body below.
+    clearTimeout(timer)
   }
 
   if (!response.ok) {
