@@ -323,6 +323,20 @@ class Booking(models.Model):
     # out-of-date time and has to be called again.
     notified_departure = models.CharField(max_length=5, null=True, blank=True)
 
+    class Meta:
+        indexes = [
+            # Seat availability is never stored - it is counted live off the
+            # confirmed bookings for one train/date/class every time someone
+            # searches a route, opens a seat map or books a ticket (see
+            # core.services.booking.availability_by_class). That filter is
+            # the hottest read in the app, and without an index it is a full
+            # scan of the booking table each time.
+            models.Index(
+                fields=["train", "travel_date", "seat_class", "booking_status"],
+                name="booking_availability_idx",
+            ),
+        ]
+
     @property
     def current_delay(self):
         """How late the train still is, after any recovery."""
