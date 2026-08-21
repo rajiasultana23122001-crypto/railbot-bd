@@ -21,6 +21,9 @@ venv/
 .venv/
 env/
 instance/
+.coverage
+htmlcov/
+coverage.xml
 
 # ---------- Database ----------
 *.db
