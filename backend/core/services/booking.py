@@ -29,10 +29,27 @@ def available_seats(train, seat_class, date):
     return total, [seat for seat in all_seats if seat not in taken]
 
 
+def ordered_stops(train):
+    """This train's stops in route order.
+
+    Reuses an already-prefetched list when there is one. train_search asks
+    for prefetch_related("stops__station") across every train in the
+    timetable, but train.stops.select_related(...) builds a *fresh*
+    queryset, which ignores that cache and goes back to the database - one
+    extra query per train, plus one per stop for the station names. Reading
+    the cache directly keeps the search at the two queries it already pays
+    for.
+    """
+    prefetched = getattr(train, "_prefetched_objects_cache", {}).get("stops")
+    if prefetched is not None:
+        return sorted(prefetched, key=lambda stop: stop.sequence)
+    return list(train.stops.select_related("station").order_by("sequence"))
+
+
 def leg_for(train, from_code, to_code):
     """The (origin stop, destination stop) for a train between two station
     codes, or None if the train doesn't call at both, in that order."""
-    stops = list(train.stops.select_related("station").order_by("sequence"))
+    stops = ordered_stops(train)
     from_stop = next((s for s in stops if s.station.code == from_code), None)
     to_stop = next((s for s in stops if s.station.code == to_code), None)
 
