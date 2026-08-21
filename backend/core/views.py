@@ -6,11 +6,13 @@ model's to_dict(), so the React components need no changes.
 
 import json
 
-from django.db import transaction
+from django.db import connections, transaction
+from django.db.utils import OperationalError
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from .agents.risk_agent import MODEL_PATH
 from .facade import DelayReportError, RailBotFacade
 from .auth import any_role_required, authority_required, passenger_required
 from .data.network import SEAT_CLASSES
@@ -35,8 +37,35 @@ from .services.booking import (
 
 @require_http_methods(["GET"])
 def health(request):
-    """Quick check that the API is alive."""
-    return JsonResponse({"status": "ok", "service": "railbot-bd"})
+    """Whether the API is alive, and whether what it depends on is too.
+
+    "The process answered" is the least interesting thing this can say. The
+    two ways this app is actually found broken are a database it cannot
+    reach and a risk model nobody has trained yet - the second is why
+    /api/delays and /api/agents/run answer 503, and it is invisible until
+    an operator reports a delay and the dashboard fails in front of them.
+    Both are reported here instead, so a deployment check finds them first.
+
+    Answers 503 when the database is unreachable, so an uptime probe sees
+    the failure rather than a cheerful 200. An untrained model is *not* a
+    503: booking, journeys and the timetable all work without it.
+    """
+    database_ok = True
+    try:
+        connections["default"].cursor().close()
+    except OperationalError:
+        database_ok = False
+
+    return JsonResponse(
+        {
+            # Unchanged for existing callers: "ok" still means "use me".
+            "status": "ok" if database_ok else "degraded",
+            "service": "railbot-bd",
+            "database": "ok" if database_ok else "unreachable",
+            "riskModelTrained": MODEL_PATH.exists(),
+        },
+        status=200 if database_ok else 503,
+    )
 
 
 @passenger_required
