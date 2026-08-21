@@ -5,7 +5,6 @@ model's to_dict(), so the React components need no changes.
 """
 
 import json
-from datetime import datetime
 
 from django.db import transaction
 from django.http import JsonResponse
