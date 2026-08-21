@@ -25,7 +25,12 @@ from .models import (
     Train,
     generate_pnr,
 )
-from .services.booking import available_seats, duration_minutes, leg_for
+from .services.booking import (
+    availability_by_class,
+    available_seats,
+    duration_minutes,
+    leg_for,
+)
 
 
 @require_http_methods(["GET"])
@@ -250,11 +255,12 @@ def train_search(request):
         from_stop, to_stop = leg
         leg_distance = round(to_stop.distance_km - from_stop.distance_km, 1)
 
+        sold_classes = [code for code in train.seat_classes if code in SEAT_CLASSES]
+        availability = availability_by_class(train, sold_classes, date)
+
         seat_classes = []
-        for code in train.seat_classes:
-            if code not in SEAT_CLASSES:
-                continue
-            total, available = available_seats(train, code, date)
+        for code in sold_classes:
+            total, available = availability[code]
             seat_classes.append(
                 {
                     "code": code,
