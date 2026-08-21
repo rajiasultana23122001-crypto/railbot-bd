@@ -20,10 +20,13 @@ def available_seats(train, seat_class, date):
     """(total_seats, [available seat numbers]) for one train/class/date."""
     total = train.seat_capacity.get(seat_class, 0)
     taken = set()
-    for booking in Booking.objects.filter(
+    # values_list, not the model rows: a Booking carries a passenger, a
+    # fare, a coach string and a dozen other columns, and the only thing
+    # this needs from it is which seats it holds.
+    for seat_numbers in Booking.objects.filter(
         train=train, travel_date=date, seat_class=seat_class, booking_status="confirmed"
-    ):
-        taken.update(booking.seat_numbers)
+    ).values_list("seat_numbers", flat=True):
+        taken.update(seat_numbers)
 
     all_seats = [f"{seat_class}-{n}" for n in range(1, total + 1)]
     return total, [seat for seat in all_seats if seat not in taken]
